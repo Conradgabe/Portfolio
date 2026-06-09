@@ -1,0 +1,350 @@
+/**
+ * Single source of truth for portfolio content.
+ * Everything here is grounded in Gabriel's real, verified work (GitHub read-only).
+ * Forks were deliberately excluded; private repos are shown as case studies, not links.
+ */
+
+export type Social = {
+  label: string;
+  handle: string;
+  href: string;
+  command: string; // how it reads in the terminal
+};
+
+export type Project = {
+  slug: string;
+  name: string; // display name (may differ from cryptic repo name)
+  repoName?: string; // the actual GitHub repo, if worth noting
+  tagline: string;
+  year: string;
+  category: string;
+  visibility: "private" | "public";
+  status?: "shipped" | "active" | "prototype";
+  repoUrl?: string; // only for public repos
+  liveUrl?: string;
+  /** Which stylized mock UI to render until a real screenshot is supplied. */
+  mock: "clipn" | "quant" | "saas" | "graphql" | "tailor" | "shared";
+  summary: string;
+  problem: string;
+  approach: string[];
+  highlights: string[];
+  stack: string[];
+  role: string;
+};
+
+export type FocusArea = {
+  key: string;
+  title: string;
+  blurb: string;
+  items: string[];
+};
+
+export const site = {
+  name: "Gabriel Isuekebho",
+  handle: "conradgabe",
+  role: "Backend & Systems Engineer",
+  location: "Lagos, Nigeria",
+  yearsExperience: 5,
+  available: true,
+
+  // Three taglines — Gabriel picks one; #1 is the default in the hero.
+  taglines: [
+    "Backend & systems engineer — AI pipelines, Lightning, and fintech infrastructure.",
+    "I build reliable backends for AI, Bitcoin, and money.",
+    "I make distributed systems behave.",
+  ],
+
+  metaDescription:
+    "Gabriel Isuekebho is a backend & systems engineer in Lagos building AI pipelines, Bitcoin/Lightning tooling, and fintech infrastructure with Python, FastAPI, and TypeScript.",
+
+  bio: [
+    "I'm a backend & systems engineer with ~5 years building the parts of software that have to be correct: data pipelines, APIs, payment-adjacent systems, and the infrastructure under them.",
+    "Lately my work clusters around three things — AI systems (LLM pipelines, media processing, agentic tooling), Bitcoin & the Lightning Network, and fintech/quant infrastructure. I like problems where reliability, money, and latency all matter at once.",
+    "I work mostly in Python and TypeScript, with FastAPI, PostgreSQL/TimescaleDB, Redis, and Docker as my default toolkit — and I'm comfortable going low-level in Rust or deep into Bitcoin script when a problem demands it.",
+  ],
+
+  socials: [
+    {
+      label: "GitHub",
+      handle: "@conradgabe",
+      href: "https://github.com/conradgabe",
+      command: "open github",
+    },
+    {
+      label: "LinkedIn",
+      handle: "gabrielisuekebho",
+      href: "https://linkedin.com/in/gabrielisuekebho",
+      command: "open linkedin",
+    },
+    {
+      label: "Medium",
+      handle: "@conradgabe",
+      href: "https://medium.com/@conradgabe",
+      command: "open medium",
+    },
+    {
+      label: "Email",
+      handle: "gisuekebho5880@gmail.com",
+      href: "mailto:gisuekebho5880@gmail.com",
+      command: "mail",
+    },
+    // X/Twitter — pending from Gabriel.
+  ] satisfies Social[],
+
+  email: "gisuekebho5880@gmail.com",
+  githubUser: "conradgabe",
+  mediumFeed: "https://medium.com/feed/@conradgabe",
+} as const;
+
+export const focusAreas: FocusArea[] = [
+  {
+    key: "backend",
+    title: "Backend & Distributed Systems",
+    blurb:
+      "APIs and services built to stay correct under load — typed schemas, async processing, queues, and clean boundaries.",
+    items: [
+      "FastAPI · GraphQL (Strawberry) · REST",
+      "PostgreSQL · TimescaleDB · Redis · Prisma · SQLAlchemy",
+      "Async jobs (RQ) · webhooks · SSE streaming",
+      "Multi-tenant architecture · RBAC · Docker",
+    ],
+  },
+  {
+    key: "ai",
+    title: "AI / LLM Systems",
+    blurb:
+      "Production pipelines around LLMs and media — not demos. Transcription, scoring, generation, and agentic tooling.",
+    items: [
+      "LLM pipelines (Claude, Gemini)",
+      "Media processing — faster-whisper, MediaPipe, FFmpeg",
+      "Agentic tooling & Claude Code workflows",
+      "Streaming inference & result delivery",
+    ],
+  },
+  {
+    key: "bitcoin",
+    title: "Bitcoin & Lightning Network",
+    blurb:
+      "Hands-on protocol work through Bitshala's Programming Bitcoin (S2) and the boss-2026 Lightning challenges — coursework and challenges, not products, but real depth.",
+    items: [
+      "Finite fields · ECC · transactions · Script · SegWit",
+      "Networking & SPV · bloom filters",
+      "Lightning routing · onion building · coin selection",
+      "Signet wallets · a from-scratch Bitcoin wallet",
+    ],
+  },
+  {
+    key: "fintech",
+    title: "Fintech & Quant",
+    blurb:
+      "Systems where money and auditability are first-class: backtesting engines, banking flows, and immutable records.",
+    items: [
+      "Event-driven backtesting · execution modeling",
+      "Sharpe / Sortino / drawdown analytics",
+      "Immutable, auditable result lineage",
+      "Time-series data at scale (TimescaleDB)",
+    ],
+  },
+];
+
+export const skills: { group: string; items: string[] }[] = [
+  { group: "languages", items: ["Python", "TypeScript", "JavaScript", "C#", "Rust", "SQL"] },
+  { group: "backend", items: ["FastAPI", "GraphQL / Strawberry", "Microservices", "REST", "Async", "Webhooks", "SSE"] },
+  { group: "data", items: ["PostgreSQL", "TimescaleDB", "Redis", "MongoDB", "Prisma", "SQLAlchemy"] },
+  { group: "infra", items: ["Docker", "Job queues (RQ)", "Vercel", "CI/CD"] },
+  { group: "ai", items: ["Claude", "Gemini", "faster-whisper", "MediaPipe", "FFmpeg", "Agentic tooling"] },
+  { group: "bitcoin", items: ["Lightning Network", "Bitcoin Script", "SegWit", "Coin selection", "Signet"] },
+  { group: "frontend", items: ["React", "Next.js", "Tailwind CSS"] },
+];
+
+export const projects: Project[] = [
+  {
+    slug: "clipn",
+    name: "ClipN",
+    tagline: "AI that turns long videos into ready-to-post short clips",
+    year: "2026",
+    category: "AI · Media Pipeline",
+    visibility: "private",
+    status: "active",
+    mock: "clipn",
+    summary:
+      "An AI pipeline that ingests long-form video (upload or a YouTube/Twitch URL), finds the best moments, reframes them vertical with face-tracking, burns in animated captions, and exports platform-ready Shorts, Reels, and TikToks.",
+    problem:
+      "Creators spend hours manually scrubbing long videos to cut shorts — finding moments, reframing to 9:16, and captioning by hand.",
+    approach: [
+      "Word-level transcription with faster-whisper, cached and reused across regenerations",
+      "Highlight detection via LLM scoring (Claude) fused with audio features, tuned per content vertical",
+      "Smart 9:16 reframing — center-crop, MediaPipe face-tracking, split-screen, or letterbox",
+      "Single-pass FFmpeg: clip + reframe + caption in one encode (~60% faster than chained encodes)",
+      "Parallel clip processing and SSE streaming so clips appear in the UI as each finishes",
+    ],
+    highlights: [
+      "Single-pass FFmpeg — ~60% faster than chained encodes",
+      "7 caption styles incl. word-by-word karaoke",
+      "Prompt-guided clipping (\"find the funny moments\")",
+      "AI-generated retention hooks at clip start",
+    ],
+    stack: ["Python", "faster-whisper", "Claude", "MediaPipe", "FFmpeg", "SSE"],
+    role: "Design & build (solo)",
+  },
+  {
+    slug: "quant-platform",
+    name: "Quantitative Trading Platform",
+    repoName: "stunning-fchess",
+    tagline: "Institutional-grade backtesting for systematic traders",
+    year: "2026",
+    category: "Fintech · Backtesting Engine",
+    visibility: "private",
+    status: "active",
+    mock: "quant",
+    summary:
+      "A professional quant platform for systematic Forex and equities traders: event-driven backtesting with realistic execution, Docker-sandboxed strategy code, survivorship-bias-aware data, and immutable, auditable results.",
+    problem:
+      "Backtests lie when execution is unrealistic, data is biased, or results can't be reproduced. Serious systematic trading needs an auditable, reproducible engine.",
+    approach: [
+      "Event-driven backtest engine with proper execution / fill modeling",
+      "Code-first Python strategies with strict versioning",
+      "Untrusted strategy code executed in Docker sandboxes",
+      "Survivorship-bias-aware market data with corporate actions",
+      "Immutable results with full lineage tracing for auditability",
+    ],
+    highlights: [
+      "Event-driven engine with realistic fills",
+      "Docker-sandboxed strategy execution",
+      "Immutable, auditable backtest lineage",
+      "Sharpe / Sortino / drawdown analytics",
+    ],
+    stack: ["FastAPI", "PostgreSQL", "TimescaleDB", "Redis / RQ", "Docker", "React", "Recharts"],
+    role: "Design & build (solo)",
+  },
+  {
+    slug: "pg-tailor",
+    name: "PG-Tailor",
+    tagline: "AI résumé tailoring & job-application copilot",
+    year: "2026",
+    category: "AI · Productivity",
+    visibility: "private",
+    status: "active",
+    mock: "tailor",
+    summary:
+      "An AI copilot for job hunting: it scrapes live job listings, tailors your professional text to each role with an LLM, and tracks every application from \"tailored\" to \"applied\" — backed by Prisma and Postgres.",
+    problem:
+      "Tailoring a CV to every job and tracking dozens of applications by hand is slow and error-prone.",
+    approach: [
+      "Job ingestion via SerpAPI with caching and archival (CachedJob / ArchivedJob)",
+      "LLM-tailored application text per role (Gemini)",
+      "Application pipeline tracking — tailored → applied — with notes and lineage",
+      "Next.js app with a Postgres data model managed through Prisma, containerized with Docker",
+    ],
+    highlights: [
+      "Live job scraping with cache + archive",
+      "Per-role LLM-tailored application text",
+      "Application tracking with status & notes",
+      "Next.js · Prisma · Postgres · Docker",
+    ],
+    stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Docker", "Gemini", "SerpAPI"],
+    role: "Design & build (solo)",
+  },
+  {
+    slug: "b2b-saas",
+    name: "B2B SaaS Platform",
+    repoName: "B2B-SaaS-Platoform",
+    tagline: "Production-ready multi-tenant backend architecture",
+    year: "2025",
+    category: "Backend · Multi-tenant SaaS",
+    visibility: "public",
+    status: "shipped",
+    repoUrl: "https://github.com/Conradgabe/B2B-SaaS-Platoform",
+    mock: "saas",
+    summary:
+      "A scalable, multi-tenant B2B SaaS backend built with FastAPI, PostgreSQL, and Docker — designed for tenant isolation, role management, and asynchronous integration with external systems.",
+    problem:
+      "Multi-tenant SaaS needs hard data isolation, flexible roles, and resilient external integrations from day one — bolting them on later is painful.",
+    approach: [
+      "Tenant data isolation as a core architectural constraint",
+      "Role-based access control for users within tenants",
+      "External API integrations with asynchronous webhook processing",
+      "Containerized, cloud-ready, and built for extensibility",
+    ],
+    highlights: [
+      "Tenant data isolation",
+      "Role-based access control",
+      "Async webhook processing",
+      "Cloud-ready & extensible",
+    ],
+    stack: ["FastAPI", "PostgreSQL", "Docker"],
+    role: "Design & build (solo)",
+  },
+  {
+    slug: "graphql-api",
+    name: "GraphQL API",
+    repoName: "graphql-api-1791",
+    tagline: "Typed GraphQL schema design with FastAPI + Strawberry",
+    year: "2025",
+    category: "Backend · API",
+    visibility: "public",
+    status: "shipped",
+    repoUrl: "https://github.com/Conradgabe/graphql-api-1791",
+    mock: "graphql",
+    summary:
+      "A GraphQL API built with FastAPI and Strawberry, showcasing schema design, typed resolvers, and a clean, well-structured API surface.",
+    problem:
+      "REST endpoints sprawl as clients' data needs grow; a typed GraphQL schema gives clients exactly what they ask for with a single, self-documenting contract.",
+    approach: [
+      "Schema-first design with Strawberry's Python type system",
+      "Typed resolvers wired into FastAPI",
+      "Self-documenting, introspectable API surface",
+    ],
+    highlights: [
+      "Schema-first GraphQL design",
+      "Strawberry + FastAPI integration",
+      "Typed, introspectable resolvers",
+    ],
+    stack: ["Python", "FastAPI", "Strawberry", "GraphQL"],
+    role: "Design & build (solo)",
+  },
+  {
+    slug: "shared-apartments",
+    name: "Shared Apartments",
+    tagline: "A platform for shared, co-living apartment management",
+    year: "2026",
+    category: "Product · Full-stack",
+    visibility: "private",
+    status: "active",
+    mock: "shared",
+    summary:
+      "An actively-developed platform for shared apartment living — a Python API paired with a TypeScript web client. A fuller case study lands as the product matures.",
+    problem:
+      "Co-living and shared apartments need coordination tools that generic rental apps don't provide.",
+    approach: [
+      "Python API service for core domain logic",
+      "TypeScript web client for residents",
+      "Built and iterated as an active product",
+    ],
+    highlights: [
+      "Python API + TypeScript web client",
+      "Actively in development",
+    ],
+    stack: ["Python", "TypeScript"],
+    role: "Engineering",
+  },
+];
+
+/** Terminal command registry — every command also maps to a clickable nav target. */
+export type Command = {
+  cmd: string;
+  label: string;
+  description: string;
+  href: string;
+  group: "navigate" | "social" | "action";
+};
+
+export const commands: Command[] = [
+  { cmd: "whoami", label: "Home", description: "Who I am", href: "/#top", group: "navigate" },
+  { cmd: "cat about.md", label: "About", description: "Background & focus", href: "/#about", group: "navigate" },
+  { cmd: "ls projects/", label: "Projects", description: "Featured work", href: "/#projects", group: "navigate" },
+  { cmd: "ls posts/", label: "Writing", description: "Articles on Medium", href: "/#writing", group: "navigate" },
+  { cmd: "git log", label: "GitHub activity", description: "Contributions & repos", href: "/#github", group: "navigate" },
+  { cmd: "cat resume.pdf", label: "Résumé", description: "Download CV", href: "/resume", group: "navigate" },
+  { cmd: "mail", label: "Contact", description: "Get in touch", href: "/#contact", group: "action" },
+];

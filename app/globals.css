@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+/*
+  Design tokens — "Designed Terminal"
+  Palette: near-black canvas · white ink · #C1CFCF silver-sage "phosphor".
+  Monochrome by intent: differentiation comes from weight / opacity, not hue.
+  Dark is the default; light is a deliberate alternate (data-theme="light").
+*/
+
+:root {
+  --bg: #0a0b0b;          /* near-black canvas */
+  --surface: #0f1211;     /* raised panel */
+  --surface-2: #141817;   /* deeper panel */
+  --ink: #ffffff;         /* primary emphasis */
+  --muted: rgba(255, 255, 255, 0.62);
+  --faint: rgba(255, 255, 255, 0.55);
+  --accent: #c1cfcf;      /* silver-sage phosphor (fills, prompts, borders) */
+  --accent-ink: #c1cfcf;  /* phosphor as readable text (AA+ on near-black) */
+  --line: rgba(193, 207, 207, 0.14);
+  --line-strong: rgba(193, 207, 207, 0.28);
+  --selection: rgba(193, 207, 207, 0.24);
+  --glow: rgba(193, 207, 207, 0.55);
+}
+
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --surface: #f5f7f6;
+  --surface-2: #eceFee;
+  --ink: #0a0b0b;
+  --muted: rgba(10, 11, 11, 0.62);
+  --faint: rgba(10, 11, 11, 0.62);
+  --accent: #c1cfcf;            /* keep brand accent for fills/borders */
+  --accent-ink: #38494a;        /* darkened sage so accent text passes AA on white */
+  --line: rgba(10, 11, 11, 0.10);
+  --line-strong: rgba(10, 11, 11, 0.20);
+  --selection: rgba(56, 73, 74, 0.16);
+  --glow: rgba(56, 73, 74, 0.30);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: ui-serif, Georgia, serif;
+
+  /* 8pt spacing rhythm */
+  --spacing-1: 8px;
+  --spacing-2: 16px;
+  --spacing-3: 24px;
+  --spacing-4: 32px;
+  --spacing-6: 48px;
+  --spacing-8: 64px;
+  --spacing-12: 96px;
+  --spacing-16: 128px;
+}
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-feature-settings: "ss01", "cv01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Offset in-page anchors so the sticky nav doesn't cover headings */
+  section[id] {
+    scroll-margin-top: 5rem;
+  }
+  ::selection {
+    background: var(--selection);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent-ink);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  /* Thin, phosphor-tinted scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 0;
+  }
+}
+
+/* Reusable primitives ----------------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 100;
+  padding: 8px 14px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition: top 0.18s ease;
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* The blinking terminal cursor */
+.cursor-blink {
+  display: inline-block;
+  width: 0.6ch;
+  height: 1.05em;
+  margin-left: 1px;
+  translate: 0 0.16em;
+  background: var(--accent-ink);
+  box-shadow: 0 0 8px var(--glow);
+  animation: blink 1.06s steps(2, start) infinite;
+}
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* CSS-driven entrance reveals (no JS gating → LCP-safe above the fold) */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes reveal-slide {
+  from { transform: translateY(12px); }
+  to { transform: none; }
+}
+.reveal-up {
+  opacity: 0;
+  animation: reveal-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.reveal-slide {
+  animation: reveal-slide 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Hairline grid frame used around terminal panels */
+.hairline {
+  border: 1px solid var(--line);
+}
+
+/* Optional CRT mode — off by default, toggled via data-crt on <html> */
+:root[data-crt="on"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.10) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .cursor-blink {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Print — clean black-on-white résumé export */
+@media print {
+  :root,
+  :root[data-theme="dark"],
+  :root[data-theme="light"] {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --ink: #000000;
+    --muted: #222222;
+    --faint: #555555;
+    --accent: #000000;
+    --accent-ink: #000000;
+    --line: rgba(0, 0, 0, 0.22);
+    --line-strong: rgba(0, 0, 0, 0.35);
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}
