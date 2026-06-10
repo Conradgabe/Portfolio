@@ -63,8 +63,8 @@ export const site = {
 
   bio: [
     "I'm a backend & systems engineer with ~5 years building the parts of software that have to be correct: data pipelines, APIs, payment-adjacent systems, and the infrastructure under them.",
-    "Lately my work clusters around three things — AI systems (LLM pipelines, media processing, agentic tooling), Bitcoin & the Lightning Network, and fintech/quant infrastructure. I like problems where reliability, money, and latency all matter at once.",
-    "I work mostly in Python and TypeScript, with FastAPI, PostgreSQL/TimescaleDB, Redis, and Docker as my default toolkit — and I'm comfortable going low-level in Rust or deep into Bitcoin script when a problem demands it.",
+    "Lately my work centres on AI-integrated platforms — real-time assistants, LLM/STT/TTS and vision pipelines, and multi-model orchestration — on top of solid backend and distributed systems across fintech and SaaS. I like problems where reliability, money, and latency all matter at once.",
+    "I work mostly in Python and C#, with FastAPI, ASP.NET Core, PostgreSQL/TimescaleDB, Redis, Docker, and Kubernetes as my default toolkit — and I explore Bitcoin and the Lightning Network on the side.",
   ],
 
   socials: [
@@ -102,51 +102,51 @@ export const site = {
 
 export const focusAreas: FocusArea[] = [
   {
+    key: "ai",
+    title: "AI-Integrated Platforms",
+    blurb:
+      "Production systems built around LLMs and multimodal AI — not demos. Real-time assistants, multi-model orchestration, and prompt architecture tuned for quality, cost, and latency.",
+    items: [
+      "LLM orchestration (OpenAI, Claude) · prompt engineering",
+      "Real-time AI over WebSockets · STT / TTS · vision models",
+      "Multi-model coordination on GPU servers",
+      "NLP · ML fine-tuning · AI agents",
+    ],
+  },
+  {
     key: "backend",
     title: "Backend & Distributed Systems",
     blurb:
-      "APIs and services built to stay correct under load — typed schemas, async processing, queues, and clean boundaries.",
+      "Services built to stay correct under load — typed APIs, microservices, queues, and clean boundaries, deployed and orchestrated for scale.",
     items: [
-      "FastAPI · GraphQL (Strawberry) · REST",
-      "PostgreSQL · TimescaleDB · Redis · Prisma · SQLAlchemy",
-      "Async jobs (RQ) · webhooks · SSE streaming",
-      "Multi-tenant architecture · RBAC · Docker",
-    ],
-  },
-  {
-    key: "ai",
-    title: "AI / LLM Systems",
-    blurb:
-      "Production pipelines around LLMs and media — not demos. Transcription, scoring, generation, and agentic tooling.",
-    items: [
-      "LLM pipelines (Claude, Gemini)",
-      "Media processing — faster-whisper, MediaPipe, FFmpeg",
-      "Agentic tooling & Claude Code workflows",
-      "Streaming inference & result delivery",
-    ],
-  },
-  {
-    key: "bitcoin",
-    title: "Bitcoin & Lightning Network",
-    blurb:
-      "Hands-on protocol work through Bitshala's Programming Bitcoin (S2) and the boss-2026 Lightning challenges — coursework and challenges, not products, but real depth.",
-    items: [
-      "Finite fields · ECC · transactions · Script · SegWit",
-      "Networking & SPV · bloom filters",
-      "Lightning routing · onion building · coin selection",
-      "Signet wallets · a from-scratch Bitcoin wallet",
+      "Python (FastAPI, Django) · C# (ASP.NET Core)",
+      "REST · GraphQL · WebSockets · microservices",
+      "PostgreSQL · TimescaleDB · Redis · SQLAlchemy",
+      "Docker · Kubernetes · CI/CD",
     ],
   },
   {
     key: "fintech",
-    title: "Fintech & Quant",
+    title: "Fintech & SaaS",
     blurb:
-      "Systems where money and auditability are first-class: backtesting engines, banking flows, and immutable records.",
+      "Systems where money and multi-tenancy are first-class: billing, payments, enterprise access, and auditable, reliable data.",
     items: [
-      "Event-driven backtesting · execution modeling",
-      "Sharpe / Sortino / drawdown analytics",
-      "Immutable, auditable result lineage",
-      "Time-series data at scale (TimescaleDB)",
+      "Multi-tenant SaaS · RBAC · SSO · audit logging",
+      "Stripe billing — subscriptions & webhooks",
+      "Backtesting engines · time-series at scale",
+      "Secure financial data pipelines",
+    ],
+  },
+  {
+    key: "bitcoin",
+    title: "Bitcoin & Lightning (exploring)",
+    blurb:
+      "Hands-on protocol work through Bitshala's Programming Bitcoin (S2) and the boss-2026 Lightning challenges — coursework and challenges, but real depth.",
+    items: [
+      "Finite fields · ECC · Script · SegWit",
+      "Lightning routing · onion building · coin selection",
+      "Signet wallets · a from-scratch Bitcoin wallet",
+      "Networking & SPV · bloom filters",
     ],
   },
 ];
@@ -203,9 +203,9 @@ export const projects: Project[] = [
   },
   {
     slug: "quant-platform",
-    name: "Quantitative Trading Platform",
+    name: "Algome",
     repoName: "stunning-fchess",
-    tagline: "Institutional-grade backtesting for systematic traders",
+    tagline: "Algorithmic trading SaaS — custom strategy execution & backtesting",
     year: "2026",
     category: "Fintech · Backtesting Engine",
     visibility: "private",
@@ -228,35 +228,35 @@ export const projects: Project[] = [
       "Immutable, auditable backtest lineage",
       "Sharpe / Sortino / drawdown analytics",
     ],
-    stack: ["FastAPI", "PostgreSQL", "TimescaleDB", "Redis / RQ", "Docker", "React", "Recharts"],
+    stack: ["FastAPI", "PostgreSQL", "TimescaleDB", "Redis", "SQLAlchemy", "Docker", "React 18", "Recharts"],
     role: "Design & build (solo)",
   },
   {
     slug: "pg-tailor",
     name: "PG-Tailor",
-    tagline: "AI résumé tailoring & job-application copilot",
+    tagline: "AI career platform — résumé tailoring, fit scoring & interview coaching",
     year: "2026",
-    category: "AI · Productivity",
+    category: "AI · Career Platform",
     visibility: "private",
     status: "active",
     mock: "tailor",
     summary:
-      "An AI copilot for job hunting: it scrapes live job listings, tailors your professional text to each role with an LLM, and tracks every application from \"tailored\" to \"applied\" — backed by Prisma and Postgres.",
+      "A full-stack AI career platform with a FastAPI backend that orchestrates chained LLM calls across OpenAI and Claude — résumé tailoring, candidate fit scoring, live job-listing ingestion, and AI interview coaching, with prompt architecture tuned for quality, token efficiency, and latency under concurrent sessions.",
     problem:
-      "Tailoring a CV to every job and tracking dozens of applications by hand is slow and error-prone.",
+      "Tailoring a CV to every role, judging fit, and prepping for interviews by hand is slow — and generic AI output doesn't hold up under real job-hunt volume.",
     approach: [
-      "Job ingestion via SerpAPI with caching and archival (CachedJob / ArchivedJob)",
-      "LLM-tailored application text per role (Gemini)",
-      "Application pipeline tracking — tailored → applied — with notes and lineage",
-      "Next.js app with a Postgres data model managed through Prisma, containerized with Docker",
+      "FastAPI backend orchestrating chained LLM calls across the OpenAI and Claude APIs",
+      "Résumé tailoring and candidate fit scoring, per role",
+      "Live job-listing ingestion and AI interview coaching",
+      "Prompt architecture tuned for output quality, token efficiency, and latency under concurrent sessions",
     ],
     highlights: [
-      "Live job scraping with cache + archive",
-      "Per-role LLM-tailored application text",
-      "Application tracking with status & notes",
-      "Next.js · Prisma · Postgres · Docker",
+      "Chained OpenAI + Claude LLM calls",
+      "Candidate fit scoring per role",
+      "AI interview coaching",
+      "Live job-listing ingestion",
     ],
-    stack: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Docker", "Gemini", "SerpAPI"],
+    stack: ["FastAPI", "Python", "OpenAI", "Claude", "PostgreSQL", "React 18", "TypeScript", "TanStack Query", "Docker"],
     role: "Design & build (solo)",
   },
   {
