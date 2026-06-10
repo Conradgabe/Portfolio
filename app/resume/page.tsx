@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { site, projects, skills, focusAreas } from "@/lib/site";
 import { resumeSummary, experience, education, certifications } from "@/lib/resume";
 import { getMediumPosts } from "@/lib/medium";
-import { PrintButton } from "@/components/ui/PrintButton";
 
 export const metadata: Metadata = {
   title: "Résumé",
@@ -24,7 +23,13 @@ export default async function ResumePage() {
           >
             <ArrowLeft size={14} /> cd ..
           </Link>
-          <PrintButton />
+          <a
+            href="/Gabriel-Isuekebho-Resume.pdf"
+            download
+            className="inline-flex items-center gap-2 border border-line-strong bg-accent/10 px-3.5 py-2 font-mono text-[13px] text-ink transition-colors hover:bg-accent/20"
+          >
+            <Download size={14} /> download PDF
+          </a>
         </div>
 
         <article className="space-y-9">

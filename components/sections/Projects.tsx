@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { projects, type Project } from "@/lib/site";
@@ -38,7 +39,19 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
     >
       <div className="overflow-hidden border-b border-line">
         <div className="transition-transform duration-500 group-hover:scale-[1.015]">
-          <ProjectMock type={project.mock} className="border-0" />
+          {project.images && project.images.length > 0 ? (
+            <div className="relative aspect-[16/10] w-full">
+              <Image
+                src={project.images[0].src}
+                alt={project.images[0].alt}
+                fill
+                sizes="(max-width: 640px) 100vw, 520px"
+                className="object-cover object-top"
+              />
+            </div>
+          ) : (
+            <ProjectMock type={project.mock} className="border-0" />
+          )}
         </div>
       </div>
       <div className="flex flex-1 flex-col p-5">

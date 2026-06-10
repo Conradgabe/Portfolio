@@ -11,6 +11,8 @@ export type Social = {
   command: string; // how it reads in the terminal
 };
 
+export type ProjectImage = { src: string; alt: string; w: number; h: number; label?: string };
+
 export type Project = {
   slug: string;
   name: string; // display name (may differ from cryptic repo name)
@@ -24,6 +26,8 @@ export type Project = {
   liveUrl?: string;
   /** Which stylized mock UI to render until a real screenshot is supplied. */
   mock: "clipn" | "quant" | "saas" | "graphql" | "tailor" | "shared";
+  /** Real product screenshots; when present they replace the stylized mock. */
+  images?: ProjectImage[];
   summary: string;
   problem: string;
   approach: string[];
@@ -148,13 +152,13 @@ export const focusAreas: FocusArea[] = [
 ];
 
 export const skills: { group: string; items: string[] }[] = [
-  { group: "languages", items: ["Python", "TypeScript", "JavaScript", "C#", "Rust", "SQL"] },
-  { group: "backend", items: ["FastAPI", "GraphQL / Strawberry", "Microservices", "REST", "Async", "Webhooks", "SSE"] },
-  { group: "data", items: ["PostgreSQL", "TimescaleDB", "Redis", "MongoDB", "Prisma", "SQLAlchemy"] },
-  { group: "infra", items: ["Docker", "Job queues (RQ)", "Vercel", "CI/CD"] },
-  { group: "ai", items: ["Claude", "Gemini", "faster-whisper", "MediaPipe", "FFmpeg", "Agentic tooling"] },
-  { group: "bitcoin", items: ["Lightning Network", "Bitcoin Script", "SegWit", "Coin selection", "Signet"] },
-  { group: "frontend", items: ["React", "Next.js", "Tailwind CSS"] },
+  { group: "languages", items: ["Python", "C#", "TypeScript", "JavaScript", "SQL"] },
+  { group: "backend", items: ["FastAPI", "Django", "ASP.NET Core", "REST", "GraphQL", "WebSockets", "Microservices"] },
+  { group: "ai / llm", items: ["OpenAI", "Claude", "LLM integration", "Prompt engineering", "NLP", "STT / TTS", "Vision", "AI agents"] },
+  { group: "data", items: ["PostgreSQL", "MySQL", "Redis", "TimescaleDB", "SQLAlchemy", "AWS S3"] },
+  { group: "infra", items: ["Docker", "Kubernetes", "GitHub Actions", "CI/CD", "AWS", "Oracle Cloud", "Linux"] },
+  { group: "frontend", items: ["React", "Next.js", "TailwindCSS", "TanStack Query"] },
+  { group: "security", items: ["RBAC", "SSO", "Audit logging", "Stripe", "Data protection"] },
 ];
 
 export const projects: Project[] = [
@@ -167,6 +171,13 @@ export const projects: Project[] = [
     visibility: "private",
     status: "active",
     mock: "clipn",
+    images: [
+      { src: "/projects/clipn/hero.png", alt: "ClipN landing page — Long videos in. Viral shorts out.", w: 1387, h: 738, label: "clipn — landing" },
+      { src: "/projects/clipn/workspace.png", alt: "ClipN workspace with an imported video ready to clip", w: 1919, h: 929, label: "clipn — workspace" },
+      { src: "/projects/clipn/pipeline.png", alt: "ClipN live processing pipeline: detect highlights, transcribe, extract audio", w: 1919, h: 936, label: "clipn — processing pipeline" },
+      { src: "/projects/clipn/brand-kit.png", alt: "ClipN brand kit: watermark, intro/outro, brand colours", w: 1919, h: 939, label: "clipn — brand kit" },
+      { src: "/projects/clipn/clients.png", alt: "ClipN multi-tenant studio: per-client workspaces", w: 1919, h: 941, label: "clipn — clients" },
+    ],
     summary:
       "An AI pipeline that ingests long-form video (upload or a YouTube/Twitch URL), finds the best moments, reframes them vertical with face-tracking, burns in animated captions, and exports platform-ready Shorts, Reels, and TikToks.",
     problem:
@@ -177,12 +188,15 @@ export const projects: Project[] = [
       "Smart 9:16 reframing — center-crop, MediaPipe face-tracking, split-screen, or letterbox",
       "Single-pass FFmpeg: clip + reframe + caption in one encode (~60% faster than chained encodes)",
       "Parallel clip processing and SSE streaming so clips appear in the UI as each finishes",
+      "Live job pipeline with per-stage observability (probe, transcribe, detect highlights, encode)",
     ],
     highlights: [
       "Single-pass FFmpeg — ~60% faster than chained encodes",
       "7 caption styles incl. word-by-word karaoke",
       "Prompt-guided clipping (\"find the funny moments\")",
       "AI-generated retention hooks at clip start",
+      "Multi-tenant studio with per-client workspaces",
+      "Brand kit + public developer API (OpenAPI)",
     ],
     stack: ["Python", "faster-whisper", "Claude", "MediaPipe", "FFmpeg", "SSE"],
     role: "Design & build (solo)",

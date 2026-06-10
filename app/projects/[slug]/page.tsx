@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Code2, Lock } from "lucide-react";
 import { projects } from "@/lib/site";
 import { ProjectMock } from "@/components/mocks/ProjectMock";
+import { ScreenshotFrame } from "@/components/ui/ScreenshotFrame";
 import { Reveal } from "@/components/ui/Reveal";
 
 export function generateStaticParams() {
@@ -99,10 +100,16 @@ export default async function ProjectPage({
 
         <Reveal delay={0.06}>
           <div className="mt-10">
-            <ProjectMock type={project.mock} />
-            <p className="mt-2 text-right font-mono text-[11px] text-faint">
-              // illustrative mock — real screenshots coming soon
-            </p>
+            {project.images && project.images.length > 0 ? (
+              <ScreenshotFrame image={project.images[0]} priority />
+            ) : (
+              <>
+                <ProjectMock type={project.mock} />
+                <p className="mt-2 text-right font-mono text-[11px] text-faint">
+                  // illustrative mock — real screenshots coming soon
+                </p>
+              </>
+            )}
           </div>
         </Reveal>
 
@@ -168,6 +175,21 @@ export default async function ProjectPage({
             </div>
           </section>
         </Reveal>
+
+        {project.images && project.images.length > 1 && (
+          <Reveal>
+            <section className="mt-14">
+              <h2 className="font-mono text-sm text-muted">
+                <span className="text-accent-ink">$</span> ls screenshots/
+              </h2>
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                {project.images.slice(1).map((img) => (
+                  <ScreenshotFrame key={img.src} image={img} sizes="(max-width: 640px) 100vw, 440px" />
+                ))}
+              </div>
+            </section>
+          </Reveal>
+        )}
 
         <Reveal>
           <nav className="mt-16 flex items-center justify-between border-t border-line pt-6">

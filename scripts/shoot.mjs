@@ -19,7 +19,7 @@ const shots = [
   { name: "github-desktop-dark", path: "/", theme: "dark", w: 1280, h: 900, scrollTo: "#github" },
   { name: "contact-desktop-dark", path: "/", theme: "dark", w: 1280, h: 900, scrollTo: "#contact" },
   { name: "home-mobile-dark", path: "/", theme: "dark", w: 390, h: 844, full: true },
-  { name: "resume-desktop-dark", path: "/resume", theme: "dark", w: 1280, h: 1000, full: true },
+  { name: "project-clipn-dark", path: "/projects/clipn", theme: "dark", w: 1280, h: 1100, full: true },
 ];
 
 async function settleReveals(page) {
@@ -59,7 +59,7 @@ for (const s of shots) {
   const page = await ctx.newPage();
   try {
     await page.goto(BASE + s.path, { waitUntil: "load", timeout: 90000 });
-    await page.waitForSelector("main", { timeout: 30000 });
+    await page.waitForSelector("main", { timeout: 60000 });
     if (s.palette) {
       await page.waitForTimeout(600);
       await page.keyboard.press("Control+KeyK");
@@ -72,6 +72,19 @@ for (const s of shots) {
     } else {
       await page.waitForTimeout(1600);
     }
+    await page.evaluate(() =>
+      Promise.all(
+        Array.from(document.images).map((i) =>
+          i.complete
+            ? null
+            : new Promise((res) => {
+                i.addEventListener("load", res, { once: true });
+                i.addEventListener("error", res, { once: true });
+              }),
+        ),
+      ),
+    );
+    await page.waitForTimeout(300);
     await page.screenshot({ path: path.join(OUT, s.name + ".png"), fullPage: !!s.full });
     console.log("shot:", s.name);
   } catch (err) {
