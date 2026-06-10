@@ -212,12 +212,12 @@ export const projects: Project[] = [
     status: "active",
     mock: "quant",
     images: [
-      { src: "/projects/algome/dashboard.png", alt: "Algome dashboard — portfolio value, total backtests, active strategies, win rate, and a performance overview chart", w: 1919, h: 946, label: "algome — dashboard" },
-      { src: "/projects/algome/strategy-editor.png", alt: "Algome strategy editor — a code-first Python MACD strategy with main.py, strategy.py, requirements, and README", w: 1918, h: 945, label: "algome — strategy editor" },
-      { src: "/projects/algome/backtest-config.png", alt: "Algome interactive backtest terminal — configure assets, timeframes, and date range for an event-driven backtest", w: 1919, h: 947, label: "algome — backtest config" },
+      { src: "/projects/algome/dashboard.png", alt: "Algome dashboard — portfolio value, total backtests, active strategies, win rate, and a performance overview chart", w: 1919, h: 944, label: "algome — dashboard" },
+      { src: "/projects/algome/strategy-editor.png", alt: "Algome strategy editor — a code-first Python MACD strategy with main.py, strategy.py, requirements, and README", w: 1919, h: 944, label: "algome — strategy editor" },
+      { src: "/projects/algome/backtest-config.png", alt: "Algome interactive backtest terminal — configure strategy, assets, timeframes, and date range for an event-driven backtest", w: 1919, h: 942, label: "algome — backtest config" },
       { src: "/projects/algome/backtest-terminal.png", alt: "Algome backtest terminal — load and inspect a strategy via terminal commands during the guided run", w: 1919, h: 947, label: "algome — backtest terminal" },
-      { src: "/projects/algome/results.png", alt: "Algome results — total return, Sharpe, max drawdown, win rate, expectancy, and monthly returns by currency pair", w: 1919, h: 940, label: "algome — results & analytics" },
-      { src: "/projects/algome/market-data.png", alt: "Algome market data — 11 forex pairs across 5 timeframes, 11 years of historical candles", w: 1919, h: 944, label: "algome — market data" },
+      { src: "/projects/algome/results.png", alt: "Algome results — performance by market conditions: volatility regime, trading session, and per-asset returns with risk checks passed", w: 1919, h: 940, label: "algome — results & analytics" },
+      { src: "/projects/algome/market-data.png", alt: "Algome market data — 11 forex pairs across 5 timeframes, 55 datasets spanning 2015–2026", w: 1919, h: 942, label: "algome — market data" },
     ],
     summary:
       "A professional quant platform for systematic Forex and equities traders: event-driven backtesting with realistic execution, Docker-sandboxed strategy code, survivorship-bias-aware data, and immutable, auditable results.",
