@@ -7,7 +7,6 @@ const LABELS: Record<Project["mock"], string> = {
   tailor: "pg-tailor — tailor view",
   saas: "architecture — multi-tenant",
   graphql: "playground — query",
-  shared: "shared — units",
 };
 
 /**
@@ -52,8 +51,6 @@ function renderContent(type: Project["mock"]) {
       return <SaasMock />;
     case "graphql":
       return <GraphqlMock />;
-    case "shared":
-      return <SharedMock />;
   }
 }
 
@@ -190,21 +187,5 @@ function GraphqlMock() {
       {"\n"}
       {"}"}
     </pre>
-  );
-}
-
-function SharedMock() {
-  return (
-    <div className="grid h-full grid-cols-4 grid-rows-3 gap-1.5">
-      {Array.from({ length: 12 }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            "border border-line",
-            [1, 4, 9].includes(i) ? "bg-accent/20" : "bg-bg/20",
-          )}
-        />
-      ))}
-    </div>
   );
 }

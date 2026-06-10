@@ -25,7 +25,7 @@ export type Project = {
   repoUrl?: string; // only for public repos
   liveUrl?: string;
   /** Which stylized mock UI to render until a real screenshot is supplied. */
-  mock: "clipn" | "quant" | "saas" | "graphql" | "tailor" | "shared";
+  mock: "clipn" | "quant" | "saas" | "graphql" | "tailor";
   /** Real product screenshots; when present they replace the stylized mock. */
   images?: ProjectImage[];
   summary: string;
@@ -331,31 +331,6 @@ export const projects: Project[] = [
     ],
     stack: ["Python", "FastAPI", "Strawberry", "GraphQL"],
     role: "Design & build (solo)",
-  },
-  {
-    slug: "shared-apartments",
-    name: "Shared Apartments",
-    tagline: "A platform for shared, co-living apartment management",
-    year: "2026",
-    category: "Product · Full-stack",
-    visibility: "private",
-    status: "active",
-    mock: "shared",
-    summary:
-      "An actively-developed platform for shared apartment living — a Python API paired with a TypeScript web client. A fuller case study lands as the product matures.",
-    problem:
-      "Co-living and shared apartments need coordination tools that generic rental apps don't provide.",
-    approach: [
-      "Python API service for core domain logic",
-      "TypeScript web client for residents",
-      "Built and iterated as an active product",
-    ],
-    highlights: [
-      "Python API + TypeScript web client",
-      "Actively in development",
-    ],
-    stack: ["Python", "TypeScript"],
-    role: "Engineering",
   },
 ];
 
