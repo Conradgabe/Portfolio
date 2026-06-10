@@ -211,6 +211,14 @@ export const projects: Project[] = [
     visibility: "private",
     status: "active",
     mock: "quant",
+    images: [
+      { src: "/projects/algome/dashboard.png", alt: "Algome dashboard — portfolio value, total backtests, active strategies, win rate, and a performance overview chart", w: 1919, h: 946, label: "algome — dashboard" },
+      { src: "/projects/algome/strategy-editor.png", alt: "Algome strategy editor — a code-first Python MACD strategy with main.py, strategy.py, requirements, and README", w: 1918, h: 945, label: "algome — strategy editor" },
+      { src: "/projects/algome/backtest-config.png", alt: "Algome interactive backtest terminal — configure assets, timeframes, and date range for an event-driven backtest", w: 1919, h: 947, label: "algome — backtest config" },
+      { src: "/projects/algome/backtest-terminal.png", alt: "Algome backtest terminal — load and inspect a strategy via terminal commands during the guided run", w: 1919, h: 947, label: "algome — backtest terminal" },
+      { src: "/projects/algome/results.png", alt: "Algome results — total return, Sharpe, max drawdown, win rate, expectancy, and monthly returns by currency pair", w: 1919, h: 940, label: "algome — results & analytics" },
+      { src: "/projects/algome/market-data.png", alt: "Algome market data — 11 forex pairs across 5 timeframes, 11 years of historical candles", w: 1919, h: 944, label: "algome — market data" },
+    ],
     summary:
       "A professional quant platform for systematic Forex and equities traders: event-driven backtesting with realistic execution, Docker-sandboxed strategy code, survivorship-bias-aware data, and immutable, auditable results.",
     problem:
@@ -240,6 +248,13 @@ export const projects: Project[] = [
     visibility: "private",
     status: "active",
     mock: "tailor",
+    images: [
+      { src: "/projects/pg-tailor/tailor.png", alt: "PG-Tailor tailoring view — upload a CV, paste a job description, pick a template, and a tailored résumé renders live", w: 1919, h: 944, label: "pg-tailor — tailor a résumé" },
+      { src: "/projects/pg-tailor/classic.png", alt: "PG-Tailor classic serif template rendering a tailored résumé preview", w: 1919, h: 941, label: "pg-tailor — classic template" },
+      { src: "/projects/pg-tailor/two-column.png", alt: "PG-Tailor two-column template with a skills sidebar", w: 1919, h: 947, label: "pg-tailor — two-column template" },
+      { src: "/projects/pg-tailor/jobs.png", alt: "PG-Tailor job listings — recent AI and backend roles with role and location filters", w: 1919, h: 941, label: "pg-tailor — job listings" },
+      { src: "/projects/pg-tailor/autopilot.png", alt: "PG-Tailor autopilot — AI scans job boards and ranks the best matches for your profile", w: 1919, h: 943, label: "pg-tailor — autopilot" },
+    ],
     summary:
       "A full-stack AI career platform with a FastAPI backend that orchestrates chained LLM calls across OpenAI and Claude — résumé tailoring, candidate fit scoring, live job-listing ingestion, and AI interview coaching, with prompt architecture tuned for quality, token efficiency, and latency under concurrent sessions.",
     problem:
