@@ -13,6 +13,11 @@ export type Post = {
 
 const parser = new Parser();
 
+/** Normalize em/en dashes (from external feed copy) to the site's middot separator. */
+function dedash(s: string) {
+  return s.replace(/\s*[—–]\s*/g, " · ");
+}
+
 function estimateMins(html?: string) {
   if (!html) return 3;
   const words = html.replace(/<[^>]+>/g, " ").trim().split(/\s+/).length;
@@ -37,12 +42,12 @@ export async function getMediumPosts(): Promise<Post[]> {
         : "";
       const html = (it as Record<string, unknown>)["content:encoded"];
       return {
-        title: it.title ?? "Untitled",
+        title: dedash(it.title ?? "Untitled"),
         link: it.link ?? "#",
         date,
         iso,
         readingMins: estimateMins(typeof html === "string" ? html : it.content),
-        snippet: (it.contentSnippet ?? "").replace(/\s+/g, " ").slice(0, 150),
+        snippet: dedash((it.contentSnippet ?? "").replace(/\s+/g, " ")).slice(0, 150),
         categories: ((it.categories as string[]) ?? []).slice(0, 3),
       };
     });
