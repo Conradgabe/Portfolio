@@ -51,9 +51,9 @@ export const site = {
   yearsExperience: 5,
   available: true,
 
-  // Three taglines — Gabriel picks one; #1 is the default in the hero.
+  // Three taglines: Gabriel picks one; #1 is the default in the hero.
   taglines: [
-    "Backend & systems engineer — AI pipelines, Lightning, and fintech infrastructure.",
+    "Backend & systems engineer: AI pipelines, Lightning, and fintech infrastructure.",
     "I build reliable backends for AI, Bitcoin, and money.",
     "I make distributed systems behave.",
   ],
@@ -63,8 +63,8 @@ export const site = {
 
   bio: [
     "I'm a backend & systems engineer with ~5 years building the parts of software that have to be correct: data pipelines, APIs, payment-adjacent systems, and the infrastructure under them.",
-    "Lately my work centres on AI-integrated platforms — real-time assistants, LLM/STT/TTS and vision pipelines, and multi-model orchestration — on top of solid backend and distributed systems across fintech and SaaS. I like problems where reliability, money, and latency all matter at once.",
-    "I work mostly in Python and C#, with FastAPI, ASP.NET Core, PostgreSQL/TimescaleDB, Redis, Docker, and Kubernetes as my default toolkit — and I explore Bitcoin and the Lightning Network on the side.",
+    "Lately my work centres on AI-integrated platforms (real-time assistants, LLM/STT/TTS and vision pipelines, and multi-model orchestration) on top of solid backend and distributed systems across fintech and SaaS. I like problems where reliability, money, and latency all matter at once.",
+    "I work mostly in Python and C#, with FastAPI, ASP.NET Core, PostgreSQL/TimescaleDB, Redis, Docker, and Kubernetes as my default toolkit, and I explore Bitcoin and the Lightning Network on the side.",
   ],
 
   socials: [
@@ -92,7 +92,7 @@ export const site = {
       href: "mailto:gisuekebho5880@gmail.com",
       command: "mail",
     },
-    // X/Twitter — pending from Gabriel.
+    // X/Twitter: pending from Gabriel.
   ] satisfies Social[],
 
   email: "gisuekebho5880@gmail.com",
@@ -105,7 +105,7 @@ export const focusAreas: FocusArea[] = [
     key: "ai",
     title: "AI-Integrated Platforms",
     blurb:
-      "Production systems built around LLMs and multimodal AI — not demos. Real-time assistants, multi-model orchestration, and prompt architecture tuned for quality, cost, and latency.",
+      "Production systems built around LLMs and multimodal AI, not demos. Real-time assistants, multi-model orchestration, and prompt architecture tuned for quality, cost, and latency.",
     items: [
       "LLM orchestration (OpenAI, Claude) · prompt engineering",
       "Real-time AI over WebSockets · STT / TTS · vision models",
@@ -117,7 +117,7 @@ export const focusAreas: FocusArea[] = [
     key: "backend",
     title: "Backend & Distributed Systems",
     blurb:
-      "Services built to stay correct under load — typed APIs, microservices, queues, and clean boundaries, deployed and orchestrated for scale.",
+      "Services built to stay correct under load: typed APIs, microservices, queues, and clean boundaries, deployed and orchestrated for scale.",
     items: [
       "Python (FastAPI, Django) · C# (ASP.NET Core)",
       "REST · GraphQL · WebSockets · microservices",
@@ -132,7 +132,7 @@ export const focusAreas: FocusArea[] = [
       "Systems where money and multi-tenancy are first-class: billing, payments, enterprise access, and auditable, reliable data.",
     items: [
       "Multi-tenant SaaS · RBAC · SSO · audit logging",
-      "Stripe billing — subscriptions & webhooks",
+      "Stripe billing: subscriptions & webhooks",
       "Backtesting engines · time-series at scale",
       "Secure financial data pipelines",
     ],
@@ -141,7 +141,7 @@ export const focusAreas: FocusArea[] = [
     key: "bitcoin",
     title: "Bitcoin & Lightning (exploring)",
     blurb:
-      "Hands-on protocol work through Bitshala's Programming Bitcoin (S2) and the boss-2026 Lightning challenges — coursework and challenges, but real depth.",
+      "Hands-on protocol work through Bitshala's Programming Bitcoin (S2) and the boss-2026 Lightning challenges: coursework and challenges, but real depth.",
     items: [
       "Finite fields · ECC · Script · SegWit",
       "Lightning routing · onion building · coin selection",
@@ -172,26 +172,26 @@ export const projects: Project[] = [
     status: "active",
     mock: "clipn",
     images: [
-      { src: "/projects/clipn/hero.png", alt: "ClipN landing page — Long videos in. Viral shorts out.", w: 1387, h: 738, label: "clipn — landing" },
-      { src: "/projects/clipn/workspace.png", alt: "ClipN workspace with an imported video ready to clip", w: 1919, h: 929, label: "clipn — workspace" },
-      { src: "/projects/clipn/pipeline.png", alt: "ClipN live processing pipeline: detect highlights, transcribe, extract audio", w: 1919, h: 936, label: "clipn — processing pipeline" },
-      { src: "/projects/clipn/brand-kit.png", alt: "ClipN brand kit: watermark, intro/outro, brand colours", w: 1919, h: 939, label: "clipn — brand kit" },
-      { src: "/projects/clipn/clients.png", alt: "ClipN multi-tenant studio: per-client workspaces", w: 1919, h: 941, label: "clipn — clients" },
+      { src: "/projects/clipn/hero.png", alt: "ClipN landing page: Long videos in. Viral shorts out.", w: 1387, h: 738, label: "clipn · landing" },
+      { src: "/projects/clipn/workspace.png", alt: "ClipN workspace with an imported video ready to clip", w: 1919, h: 929, label: "clipn · workspace" },
+      { src: "/projects/clipn/pipeline.png", alt: "ClipN live processing pipeline: detect highlights, transcribe, extract audio", w: 1919, h: 936, label: "clipn · processing pipeline" },
+      { src: "/projects/clipn/brand-kit.png", alt: "ClipN brand kit: watermark, intro/outro, brand colours", w: 1919, h: 939, label: "clipn · brand kit" },
+      { src: "/projects/clipn/clients.png", alt: "ClipN multi-tenant studio: per-client workspaces", w: 1919, h: 941, label: "clipn · clients" },
     ],
     summary:
       "An AI pipeline that ingests long-form video (upload or a YouTube/Twitch URL), finds the best moments, reframes them vertical with face-tracking, burns in animated captions, and exports platform-ready Shorts, Reels, and TikToks.",
     problem:
-      "Creators spend hours manually scrubbing long videos to cut shorts — finding moments, reframing to 9:16, and captioning by hand.",
+      "Creators spend hours manually scrubbing long videos to cut shorts: finding moments, reframing to 9:16, and captioning by hand.",
     approach: [
       "Word-level transcription with faster-whisper, cached and reused across regenerations",
       "Highlight detection via LLM scoring (Claude) fused with audio features, tuned per content vertical",
-      "Smart 9:16 reframing — center-crop, MediaPipe face-tracking, split-screen, or letterbox",
+      "Smart 9:16 reframing: center-crop, MediaPipe face-tracking, split-screen, or letterbox",
       "Single-pass FFmpeg: clip + reframe + caption in one encode (~60% faster than chained encodes)",
       "Parallel clip processing and SSE streaming so clips appear in the UI as each finishes",
       "Live job pipeline with per-stage observability (probe, transcribe, detect highlights, encode)",
     ],
     highlights: [
-      "Single-pass FFmpeg — ~60% faster than chained encodes",
+      "Single-pass FFmpeg: ~60% faster than chained encodes",
       "7 caption styles incl. word-by-word karaoke",
       "Prompt-guided clipping (\"find the funny moments\")",
       "AI-generated retention hooks at clip start",
@@ -205,19 +205,19 @@ export const projects: Project[] = [
     slug: "quant-platform",
     name: "Algome",
     repoName: "stunning-fchess",
-    tagline: "Algorithmic trading SaaS — custom strategy execution & backtesting",
+    tagline: "Algorithmic trading SaaS: custom strategy execution & backtesting",
     year: "2026",
     category: "Fintech · Backtesting Engine",
     visibility: "private",
     status: "active",
     mock: "quant",
     images: [
-      { src: "/projects/algome/dashboard.png", alt: "Algome dashboard — portfolio value, total backtests, active strategies, win rate, and a performance overview chart", w: 1919, h: 944, label: "algome — dashboard" },
-      { src: "/projects/algome/strategy-editor.png", alt: "Algome strategy editor — a code-first Python MACD strategy with main.py, strategy.py, requirements, and README", w: 1919, h: 944, label: "algome — strategy editor" },
-      { src: "/projects/algome/backtest-config.png", alt: "Algome interactive backtest terminal — configure strategy, assets, timeframes, and date range for an event-driven backtest", w: 1919, h: 942, label: "algome — backtest config" },
-      { src: "/projects/algome/backtest-terminal.png", alt: "Algome backtest terminal — load and inspect a strategy via terminal commands during the guided run", w: 1919, h: 947, label: "algome — backtest terminal" },
-      { src: "/projects/algome/results.png", alt: "Algome results — performance by market conditions: volatility regime, trading session, and per-asset returns with risk checks passed", w: 1919, h: 940, label: "algome — results & analytics" },
-      { src: "/projects/algome/market-data.png", alt: "Algome market data — 11 forex pairs across 5 timeframes, 55 datasets spanning 2015–2026", w: 1919, h: 942, label: "algome — market data" },
+      { src: "/projects/algome/dashboard.png", alt: "Algome dashboard: portfolio value, total backtests, active strategies, win rate, and a performance overview chart", w: 1919, h: 944, label: "algome · dashboard" },
+      { src: "/projects/algome/strategy-editor.png", alt: "Algome strategy editor: a code-first Python MACD strategy with main.py, strategy.py, requirements, and README", w: 1919, h: 944, label: "algome · strategy editor" },
+      { src: "/projects/algome/backtest-config.png", alt: "Algome interactive backtest terminal: configure strategy, assets, timeframes, and date range for an event-driven backtest", w: 1919, h: 942, label: "algome · backtest config" },
+      { src: "/projects/algome/backtest-terminal.png", alt: "Algome backtest terminal: load and inspect a strategy via terminal commands during the guided run", w: 1919, h: 947, label: "algome · backtest terminal" },
+      { src: "/projects/algome/results.png", alt: "Algome results: performance by market conditions: volatility regime, trading session, and per-asset returns with risk checks passed", w: 1919, h: 940, label: "algome · results & analytics" },
+      { src: "/projects/algome/market-data.png", alt: "Algome market data: 11 forex pairs across 5 timeframes, 55 datasets spanning 2015 to 2026", w: 1919, h: 942, label: "algome · market data" },
     ],
     summary:
       "A professional quant platform for systematic Forex and equities traders: event-driven backtesting with realistic execution, Docker-sandboxed strategy code, survivorship-bias-aware data, and immutable, auditable results.",
@@ -242,23 +242,23 @@ export const projects: Project[] = [
   {
     slug: "pg-tailor",
     name: "PG-Tailor",
-    tagline: "AI career platform — résumé tailoring, fit scoring & interview coaching",
+    tagline: "AI career platform: résumé tailoring, fit scoring & interview coaching",
     year: "2026",
     category: "AI · Career Platform",
     visibility: "private",
     status: "active",
     mock: "tailor",
     images: [
-      { src: "/projects/pg-tailor/tailor.png", alt: "PG-Tailor tailoring view — upload a CV, paste a job description, pick a template, and a tailored résumé renders live", w: 1919, h: 944, label: "pg-tailor — tailor a résumé" },
-      { src: "/projects/pg-tailor/classic.png", alt: "PG-Tailor classic serif template rendering a tailored résumé preview", w: 1919, h: 941, label: "pg-tailor — classic template" },
-      { src: "/projects/pg-tailor/two-column.png", alt: "PG-Tailor two-column template with a skills sidebar", w: 1919, h: 947, label: "pg-tailor — two-column template" },
-      { src: "/projects/pg-tailor/jobs.png", alt: "PG-Tailor job listings — recent AI and backend roles with role and location filters", w: 1919, h: 941, label: "pg-tailor — job listings" },
-      { src: "/projects/pg-tailor/autopilot.png", alt: "PG-Tailor autopilot — AI scans job boards and ranks the best matches for your profile", w: 1919, h: 943, label: "pg-tailor — autopilot" },
+      { src: "/projects/pg-tailor/tailor.png", alt: "PG-Tailor tailoring view: upload a CV, paste a job description, pick a template, and a tailored résumé renders live", w: 1919, h: 944, label: "pg-tailor · tailor a résumé" },
+      { src: "/projects/pg-tailor/classic.png", alt: "PG-Tailor classic serif template rendering a tailored résumé preview", w: 1919, h: 941, label: "pg-tailor · classic template" },
+      { src: "/projects/pg-tailor/two-column.png", alt: "PG-Tailor two-column template with a skills sidebar", w: 1919, h: 947, label: "pg-tailor · two-column template" },
+      { src: "/projects/pg-tailor/jobs.png", alt: "PG-Tailor job listings: recent AI and backend roles with role and location filters", w: 1919, h: 941, label: "pg-tailor · job listings" },
+      { src: "/projects/pg-tailor/autopilot.png", alt: "PG-Tailor autopilot: AI scans job boards and ranks the best matches for your profile", w: 1919, h: 943, label: "pg-tailor · autopilot" },
     ],
     summary:
-      "A full-stack AI career platform with a FastAPI backend that orchestrates chained LLM calls across OpenAI and Claude — résumé tailoring, candidate fit scoring, live job-listing ingestion, and AI interview coaching, with prompt architecture tuned for quality, token efficiency, and latency under concurrent sessions.",
+      "A full-stack AI career platform with a FastAPI backend that orchestrates chained LLM calls across OpenAI and Claude: résumé tailoring, candidate fit scoring, live job-listing ingestion, and AI interview coaching, with prompt architecture tuned for quality, token efficiency, and latency under concurrent sessions.",
     problem:
-      "Tailoring a CV to every role, judging fit, and prepping for interviews by hand is slow — and generic AI output doesn't hold up under real job-hunt volume.",
+      "Tailoring a CV to every role, judging fit, and prepping for interviews by hand is slow, and generic AI output doesn't hold up under real job-hunt volume.",
     approach: [
       "FastAPI backend orchestrating chained LLM calls across the OpenAI and Claude APIs",
       "Résumé tailoring and candidate fit scoring, per role",
@@ -286,9 +286,9 @@ export const projects: Project[] = [
     repoUrl: "https://github.com/Conradgabe/B2B-SaaS-Platoform",
     mock: "saas",
     summary:
-      "A scalable, multi-tenant B2B SaaS backend built with FastAPI, PostgreSQL, and Docker — designed for tenant isolation, role management, and asynchronous integration with external systems.",
+      "A scalable, multi-tenant B2B SaaS backend built with FastAPI, PostgreSQL, and Docker, designed for tenant isolation, role management, and asynchronous integration with external systems.",
     problem:
-      "Multi-tenant SaaS needs hard data isolation, flexible roles, and resilient external integrations from day one — bolting them on later is painful.",
+      "Multi-tenant SaaS needs hard data isolation, flexible roles, and resilient external integrations from day one, bolting them on later is painful.",
     approach: [
       "Tenant data isolation as a core architectural constraint",
       "Role-based access control for users within tenants",
@@ -334,7 +334,7 @@ export const projects: Project[] = [
   },
 ];
 
-/** Terminal command registry — every command also maps to a clickable nav target. */
+/** Terminal command registry: every command also maps to a clickable nav target. */
 export type Command = {
   cmd: string;
   label: string;

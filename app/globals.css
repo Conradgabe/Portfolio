@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
-  Design tokens — "Designed Terminal"
+  Design tokens: "Designed Terminal"
   Palette: near-black canvas · white ink · #C1CFCF silver-sage "phosphor".
   Monochrome by intent: differentiation comes from weight / opacity, not hue.
   Dark is the default; light is a deliberate alternate (data-theme="light").
@@ -164,7 +164,7 @@
   border: 1px solid var(--line);
 }
 
-/* Optional CRT mode — off by default, toggled via data-crt on <html> */
+/* Optional CRT mode: off by default, toggled via data-crt on <html> */
 :root[data-crt="on"] body::after {
   content: "";
   position: fixed;
@@ -198,7 +198,7 @@
   }
 }
 
-/* Print — clean black-on-white résumé export */
+/* Print: clean black-on-white résumé export */
 @media print {
   :root,
   :root[data-theme="dark"],

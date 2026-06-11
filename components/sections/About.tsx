@@ -10,7 +10,7 @@ export function About() {
           <SectionHeading command="cat about.md" index="01" title="About" />
         </Reveal>
 
-        {/* Bio — rendered as readable long-form, with a phosphor margin rule */}
+        {/* Bio: rendered as readable long-form, with a phosphor margin rule */}
         <Reveal delay={0.05}>
           <div className="max-w-2xl border-l border-line pl-5 sm:pl-6">
             {site.bio.map((para, i) => (

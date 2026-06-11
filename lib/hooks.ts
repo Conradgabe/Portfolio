@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/** True after first client mount — guards against hydration mismatches. */
+/** True after first client mount, guards against hydration mismatches. */
 export function useMounted() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

@@ -2,15 +2,15 @@ import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/site";
 
 const LABELS: Record<Project["mock"], string> = {
-  clipn: "clipn — render queue",
-  quant: "backtest — equity curve",
-  tailor: "pg-tailor — tailor view",
-  saas: "architecture — multi-tenant",
-  graphql: "playground — query · response",
+  clipn: "clipn · render queue",
+  quant: "backtest · equity curve",
+  tailor: "pg-tailor · tailor view",
+  saas: "architecture · multi-tenant",
+  graphql: "playground · query · response",
 };
 
 /**
- * Stylized, monochrome "mock UI" for each project — a placeholder until
+ * Stylized, monochrome "mock UI" for each project: a placeholder until
  * Gabriel supplies real screenshots. Pure CSS/SVG, on-brand silver-phosphor.
  */
 export function ProjectMock({

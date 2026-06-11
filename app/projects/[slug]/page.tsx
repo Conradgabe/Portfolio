@@ -20,7 +20,7 @@ export async function generateMetadata({
   const project = projects.find((p) => p.slug === slug);
   if (!project) return {};
   return {
-    title: `${project.name} — ${project.category}`,
+    title: `${project.name} · ${project.category}`,
     description: project.summary,
   };
 }
@@ -106,7 +106,7 @@ export default async function ProjectPage({
               <>
                 <ProjectMock type={project.mock} />
                 <p className="mt-2 text-right font-mono text-[11px] text-faint">
-                  // illustrative mock — real screenshots coming soon
+                  // illustrative mock, real screenshots coming soon
                 </p>
               </>
             )}

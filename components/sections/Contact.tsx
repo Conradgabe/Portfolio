@@ -26,7 +26,7 @@ export function Contact() {
     if (!WEB3FORMS_KEY) {
       window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(
         `Portfolio enquiry from ${name}`,
-      )}&body=${encodeURIComponent(`${message}\n\n— ${name} (${email})`)}`;
+      )}&body=${encodeURIComponent(`${message}\n\n${name} (${email})`)}`;
       return;
     }
 
@@ -118,12 +118,12 @@ export function Contact() {
                 </button>
                 {status === "success" && (
                   <span className="inline-flex items-center gap-1.5 font-mono text-sm text-accent-ink">
-                    <Check size={15} /> sent — I&apos;ll reply soon
+                    <Check size={15} /> sent, I&apos;ll reply soon
                   </span>
                 )}
                 {status === "error" && (
                   <span className="font-mono text-sm text-muted">
-                    something went wrong — email me directly
+                    something went wrong, email me directly
                   </span>
                 )}
               </div>

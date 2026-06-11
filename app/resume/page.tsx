@@ -93,7 +93,7 @@ export default async function ResumePage() {
                   <li key={i}>
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="font-sans text-sm font-medium text-ink">
-                        {job.role} — {job.org}
+                        {job.role} · {job.org}
                       </span>
                       <span className="shrink-0 font-mono text-[11px] text-faint">{job.period}</span>
                     </div>
@@ -109,7 +109,7 @@ export default async function ResumePage() {
                 ))}
               </ul>
             ) : (
-              <Placeholder note="Work history to be added — send me roles, companies, and dates." />
+              <Placeholder note="Work history to be added, send me roles, companies, and dates." />
             )}
           </Section>
 

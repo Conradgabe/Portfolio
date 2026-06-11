@@ -8,7 +8,7 @@ import { smoothScrollTo, openCommandPalette } from "@/lib/scroll";
 
 /**
  * Entrance is CSS-driven (.reveal-up / .reveal-slide) rather than JS/Motion so
- * the above-the-fold content — especially the name (LCP element) — paints
+ * the above-the-fold content, especially the name (LCP element), paints
  * immediately and isn't gated behind hydration.
  */
 export function Hero() {

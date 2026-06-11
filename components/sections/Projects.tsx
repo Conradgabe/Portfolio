@@ -15,7 +15,7 @@ export function Projects() {
             command="ls projects/"
             index="02"
             title="Selected work"
-            blurb="Things I've designed and built — AI pipelines, a quant engine, backend platforms, and developer tools. Forks excluded; private repos shown as case studies."
+            blurb="Things I've designed and built: AI pipelines, a quant engine, backend platforms, and developer tools. Forks excluded; private repos shown as case studies."
           />
         </Reveal>
 

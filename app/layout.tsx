@@ -16,8 +16,8 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   metadataBase: new URL("https://gabriel-isuekebho.vercel.app"),
   title: {
-    default: `${site.name} — ${site.role}`,
-    template: `%s — ${site.name}`,
+    default: `${site.name} · ${site.role}`,
+    template: `%s · ${site.name}`,
   },
   description: site.metaDescription,
   authors: [{ name: site.name }],
@@ -34,13 +34,13 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     type: "website",
-    title: `${site.name} — ${site.role}`,
+    title: `${site.name} · ${site.role}`,
     description: site.metaDescription,
     siteName: site.name,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${site.name} — ${site.role}`,
+    title: `${site.name} · ${site.role}`,
     description: site.metaDescription,
   },
 };

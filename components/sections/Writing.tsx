@@ -15,7 +15,7 @@ export async function Writing() {
             command="ls posts/"
             index="03"
             title="Writing"
-            blurb="Notes on backend systems, Bitcoin, and building with AI — published on Medium."
+            blurb="Notes on backend systems, Bitcoin, and building with AI, published on Medium."
           />
         </Reveal>
 
@@ -23,7 +23,7 @@ export async function Writing() {
           <Reveal delay={0.05}>
             <div className="border border-line p-8 text-center">
               <p className="font-mono text-sm text-muted">
-                <span className="text-accent-ink">$</span> ls posts/ —{" "}
+                <span className="text-accent-ink">$</span> ls posts/ ·{" "}
                 <span className="text-faint">no posts found</span>
               </p>
               <a

@@ -19,9 +19,9 @@ export async function GitHubActivity() {
   const weeks = chunk(recent, 7);
 
   const stats = [
-    { label: "contributions", value: data.totalContrib ? data.totalContrib.toLocaleString() : "—" },
-    { label: "public repos", value: data.profile ? String(data.profile.public_repos) : "—" },
-    { label: "followers", value: data.profile ? String(data.profile.followers) : "—" },
+    { label: "contributions", value: data.totalContrib ? data.totalContrib.toLocaleString() : "·" },
+    { label: "public repos", value: data.profile ? String(data.profile.public_repos) : "·" },
+    { label: "followers", value: data.profile ? String(data.profile.followers) : "·" },
   ];
 
   return (
