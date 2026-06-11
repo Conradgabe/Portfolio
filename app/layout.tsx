@@ -13,9 +13,7 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const BASE = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+const BASE = site.url;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),

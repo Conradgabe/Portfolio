@@ -50,6 +50,7 @@ export const site = {
   location: "Lagos, Nigeria",
   yearsExperience: 5,
   available: true,
+  url: "https://conradgabe.vercel.app",
 
   // Three taglines: Gabriel picks one; #1 is the default in the hero.
   taglines: [

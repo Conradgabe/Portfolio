@@ -1,9 +1,7 @@
 import type { MetadataRoute } from "next";
-import { projects } from "@/lib/site";
+import { projects, site } from "@/lib/site";
 
-const BASE = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+const BASE = site.url;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const paths = ["", "/resume", ...projects.map((p) => `/projects/${p.slug}`)];
