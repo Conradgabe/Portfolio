@@ -6,7 +6,7 @@ const LABELS: Record<Project["mock"], string> = {
   quant: "backtest — equity curve",
   tailor: "pg-tailor — tailor view",
   saas: "architecture — multi-tenant",
-  graphql: "playground — query",
+  graphql: "playground — query · response",
 };
 
 /**
@@ -146,21 +146,40 @@ function TailorMock() {
 
 function SaasMock() {
   return (
-    <div className="grid h-full grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-2 font-mono text-[8px] text-muted">
-      <div className="space-y-2">
-        <Box>tenant A</Box>
-        <Box>tenant B</Box>
-        <Box>tenant C</Box>
+    <div className="flex h-full flex-col gap-2 font-mono text-[8px] text-muted">
+      <div className="grid flex-1 grid-cols-[1fr_auto_1.15fr_auto_1fr] items-center gap-1.5">
+        <div className="space-y-1">
+          <div className="text-[7px] uppercase tracking-wider text-faint">tenants</div>
+          <Box>acme · JWT</Box>
+          <Box>globex · JWT</Box>
+          <Box>initech · JWT</Box>
+        </div>
+        <Arrow />
+        <div className="space-y-1.5">
+          <div className="border border-accent/40 bg-accent/5 p-1.5 text-center text-accent-ink">
+            API Gateway
+            <div className="mt-0.5 text-[7px] text-faint">auth · RBAC · rate-limit</div>
+          </div>
+          <div className="border border-line p-1.5 text-center">
+            FastAPI
+            <div className="mt-0.5 text-[7px] text-faint">tenant context · async</div>
+          </div>
+        </div>
+        <Arrow />
+        <div className="space-y-1">
+          <div className="text-[7px] uppercase tracking-wider text-faint">schema-per-tenant</div>
+          <Store>db · acme</Store>
+          <Store>db · globex</Store>
+          <Store>db · initech</Store>
+        </div>
       </div>
-      <Arrow />
-      <div className="border border-accent/40 bg-accent/5 p-2 text-center text-accent-ink">
-        API
-        <div className="mt-1 text-[7px] text-faint">RBAC · isolation</div>
-      </div>
-      <Arrow />
-      <div className="space-y-2">
-        <Box>Postgres</Box>
-        <Box>webhooks</Box>
+      <div className="flex items-center gap-2 border border-line bg-bg/30 px-2 py-1 text-[7px] text-faint">
+        <span className="text-accent-ink">events</span>
+        <span>→ queue</span>
+        <span className="flex-1 border-t border-dashed border-line-strong/60" />
+        <span>retry · backoff</span>
+        <span className="text-line-strong">→</span>
+        <span className="text-muted">webhooks</span>
       </div>
     </div>
   );
@@ -170,22 +189,59 @@ function Box({ children }: { children: React.ReactNode }) {
   return <div className="border border-line px-1.5 py-1 text-center">{children}</div>;
 }
 
+function Store({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative overflow-hidden border border-line py-1 pl-2.5 pr-1.5 text-center">
+      <span className="absolute inset-y-0 left-0 w-1 bg-accent-ink/30" />
+      {children}
+    </div>
+  );
+}
+
 function Arrow() {
   return <div className="text-center text-line-strong">→</div>;
 }
 
 function GraphqlMock() {
   return (
-    <pre className="h-full overflow-hidden border border-line bg-bg/30 p-3 font-mono text-[9px] leading-5 text-muted">
-      <span className="text-accent-ink">query</span> {"{"}
-      {"\n  "}user(id: <span className="text-ink">42</span>) {"{"}
-      {"\n    "}id
-      {"\n    "}name
-      {"\n    "}repos {"{"} <span className="text-faint">name, stars</span> {"}"}
-      {"\n  "}
-      {"}"}
-      {"\n"}
-      {"}"}
-    </pre>
+    <div className="flex h-full flex-col font-mono text-[8px] leading-[1.55]">
+      <div className="flex items-center gap-2 border-b border-line pb-1.5 text-[7px] uppercase tracking-wider text-faint">
+        <span className="text-accent-ink">query</span>
+        <span>variables</span>
+        <span className="ml-auto flex items-center gap-1 normal-case tracking-normal">
+          <span className="h-1 w-1 rounded-full bg-accent-ink" /> 200 · 14ms
+        </span>
+      </div>
+      <div className="grid flex-1 grid-cols-2 gap-3 pt-2">
+        <pre className="overflow-hidden whitespace-pre text-muted">
+          <span className="text-accent-ink">query</span> {"{"}
+          {"\n  "}user(id: <span className="text-ink">42</span>) {"{"}
+          {"\n    "}id
+          {"\n    "}name
+          {"\n    "}repos {"{"}
+          {"\n      "}name
+          {"\n      "}stars
+          {"\n    "}{"}"}
+          {"\n  "}{"}"}
+          {"\n"}{"}"}
+        </pre>
+        <pre className="overflow-hidden whitespace-pre border-l border-line pl-3 text-faint">
+          {"{"}
+          {"\n  "}<span className="text-muted">&quot;data&quot;</span>: {"{"}
+          {"\n    "}<span className="text-muted">&quot;user&quot;</span>: {"{"}
+          {"\n      "}<span className="text-muted">&quot;id&quot;</span>: <span className="text-ink">42</span>,
+          {"\n      "}<span className="text-muted">&quot;name&quot;</span>: <span className="text-accent-ink">&quot;gabriel&quot;</span>,
+          {"\n      "}<span className="text-muted">&quot;repos&quot;</span>: <span className="text-faint">[ … ]</span>
+          {"\n    "}{"}"}
+          {"\n  "}{"}"}
+          {"\n"}{"}"}
+        </pre>
+      </div>
+      <div className="mt-2 flex items-center gap-2 border-t border-line pt-1.5 text-[7px] text-faint">
+        <span className="text-accent-ink">schema</span>
+        <span>type User {"{"} id · name · repos: [Repo!]! {"}"}</span>
+        <span className="ml-auto">strawberry · introspectable</span>
+      </div>
+    </div>
   );
 }
