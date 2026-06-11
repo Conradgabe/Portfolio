@@ -54,7 +54,7 @@ export const site = {
   // Three taglines: Gabriel picks one; #1 is the default in the hero.
   taglines: [
     "Backend & systems engineer: AI pipelines, Bitcoin development, and infrastructure.",
-    "Building reliable backends for AI, Bitcoin, and money.",
+    "Building reliable backends for systems and products.",
     "Building distributed systems.",
   ],
 
