@@ -63,7 +63,7 @@ export const site = {
 
   bio: [
     "I'm a backend & systems engineer with ~5 years building the parts of software that have to be correct: data pipelines, APIs, payment-adjacent systems, and the infrastructure under them.",
-    "Lately my work centres on AI-integrated platforms (real-time assistants, LLM/STT/TTS and vision pipelines, and multi-model orchestration) on top of solid backend and distributed systems across fintech and SaaS. I like problems where reliability, money, and latency all matter at once.",
+    "Lately my work centres on AI-integrated platforms (real-time assistants, LLM/STT/TTS and vision pipelines, and multi-model orchestration) on top of solid backend and distributed systems across fintech and SaaS. I like problems where reliability, consistency, and latency all matter at once.",
     "I work mostly in Python and C#, with FastAPI, ASP.NET Core, PostgreSQL/TimescaleDB, Redis, Docker, and Kubernetes as my default toolkit, and I explore Bitcoin and the Lightning Network on the side.",
   ],
 
