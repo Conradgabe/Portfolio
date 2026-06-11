@@ -162,6 +162,14 @@ export const skills: { group: string; items: string[] }[] = [
   { group: "security", items: ["RBAC", "SSO", "Audit logging", "Stripe", "Data protection"] },
 ];
 
+/** Headline impact numbers, each grounded in a real role (see lib/resume.ts). */
+export const metrics: { value: string; label: string }[] = [
+  { value: "5+", label: "yrs building backend & AI systems" },
+  { value: "~60%", label: "faster video encodes on ClipN" },
+  { value: "35%", label: "faster multi-industry integration" },
+  { value: "40%", label: "less downtime on an AI platform" },
+];
+
 export const projects: Project[] = [
   {
     slug: "clipn",

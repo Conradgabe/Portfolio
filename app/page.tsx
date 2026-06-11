@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Hero } from "@/components/sections/Hero";
+import { Metrics } from "@/components/sections/Metrics";
 import { About } from "@/components/sections/About";
 import { Projects } from "@/components/sections/Projects";
 import { Writing } from "@/components/sections/Writing";
@@ -23,6 +24,7 @@ export default function Home() {
   return (
     <main id="main" className="flex-1">
       <Hero />
+      <Metrics />
       <About />
       <Projects />
       <Suspense fallback={<SectionFallback id="writing" command="ls posts/" />}>
