@@ -1,0 +1,2479 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ClipN API",
+    "description": "AI-powered long-form video to short-form clips",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/videos": {
+      "post": {
+        "tags": ["videos"],
+        "summary": "Upload Video",
+        "description": "Upload a video file for processing.\n\nOptional `client_id` query param scopes the video to a studio client.\nWhen omitted, the video belongs to the operator's own workspace.",
+        "operationId": "upload_video_api_v1_videos_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_video_api_v1_videos_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VideoUploadResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "get": {
+        "tags": ["videos"],
+        "summary": "List Videos",
+        "description": "List videos for the authenticated user.\n\nScoping rules:\n  - scope=\"all\" (default): every video the operator can see\n  - scope=\"operator\": only videos without a client (the operator's personal work)\n  - client_id=<id>: only videos for that specific client",
+        "operationId": "list_videos_api_v1_videos_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "default": "all", "title": "Scope" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VideoListResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}": {
+      "get": {
+        "tags": ["videos"],
+        "summary": "Get Video",
+        "description": "Get video details (must belong to the authenticated user).",
+        "operationId": "get_video_api_v1_videos__video_id__get",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VideoResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["videos"],
+        "summary": "Delete Video",
+        "description": "Delete a video and all associated data (must belong to user).",
+        "operationId": "delete_video_api_v1_videos__video_id__delete",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}/clips/stream": {
+      "get": {
+        "tags": ["videos"],
+        "summary": "Stream Clips",
+        "description": "Server-Sent Events endpoint that streams new clips as they become ready.\n\nAuthentication: token passed as ?token= query param (EventSource cannot\nsend Authorization headers). Token is the same session token from sign-in.",
+        "operationId": "stream_clips_api_v1_videos__video_id__clips_stream_get",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}/clips": {
+      "get": {
+        "tags": ["videos"],
+        "summary": "List Clips",
+        "description": "List all clips for a video (must belong to user).\n\nBy default variants are hidden — they show up as second-class items\nunder their parent via GET /clips/{id}/variants. Pass\n`include_variants=true` to get the flat list for debugging.",
+        "operationId": "list_clips_api_v1_videos__video_id__clips_get",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } },
+          {
+            "name": "include_variants",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": false, "title": "Include Variants" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClipListResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}/generate": {
+      "post": {
+        "tags": ["videos"],
+        "summary": "Generate Clips",
+        "description": "Trigger clip generation for a video.",
+        "operationId": "generate_clips_api_v1_videos__video_id__generate_post",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenerateClipsRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClipListResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}/transcript": {
+      "get": {
+        "tags": ["videos"],
+        "summary": "Get Transcript",
+        "description": "Get the transcript for a video.",
+        "operationId": "get_transcript_api_v1_videos__video_id__transcript_get",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TranscriptResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/videos/{video_id}/cancel": {
+      "post": {
+        "tags": ["videos"],
+        "summary": "Cancel Video",
+        "description": "Request cancellation of an in-progress video job.\n\nCooperative: flags the job so the pipeline stops at its next checkpoint\n(before transcription, before analysis, or before the next clip render).\nA transcription already running can't be interrupted mid-call, so during\nthat phase the stop takes effect once it finishes. Clips already rendered\nare kept.",
+        "operationId": "cancel_video_api_v1_videos__video_id__cancel_post",
+        "parameters": [
+          { "name": "video_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Video Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}": {
+      "get": {
+        "tags": ["clips"],
+        "summary": "Get Clip",
+        "description": "Get clip details (must belong to user).",
+        "operationId": "get_clip_api_v1_clips__clip_id__get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClipResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["clips"],
+        "summary": "Delete Clip",
+        "description": "Delete a clip (must belong to user).\n\nCascades to variants: every Clip row with variant_of_clip_id == clip_id is\nremoved alongside the parent, plus their on-disk files. Without this,\nvariants would orphan — invisible in the UI (filtered out of all lists)\nbut still consuming disk and DB rows indefinitely.\n\nNote: a proper DB-level ON DELETE CASCADE is preferred at scale; we're\ndoing app-level cascade here because SQLite can't alter FK constraints\nin place. See docs/pre-launch-checklist.md.",
+        "operationId": "delete_clip_api_v1_clips__clip_id__delete",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/variants": {
+      "get": {
+        "tags": ["clips"],
+        "summary": "List Variants",
+        "description": "Return every stored variant of a parent clip.\n\nLets the video detail UI re-hydrate the variants panel after a reload\ninstead of forgetting anything the user generated last session.\nVariants of variants aren't a thing (see create_variants guard), so\neach returned row is always a direct child of `clip_id`.",
+        "operationId": "list_variants_api_v1_clips__clip_id__variants_get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClipResponse" },
+                  "title": "Response List Variants Api V1 Clips  Clip Id  Variants Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["clips"],
+        "summary": "Create Variants",
+        "description": "Create N stylistic variants of a clip.\n\nRe-renders the same time range with different combinations of:\ncaption style, reframe mode, and hook mode. Does NOT re-transcribe.",
+        "operationId": "create_variants_api_v1_clips__clip_id__variants_post",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VariantsRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/download": {
+      "get": {
+        "tags": ["clips"],
+        "summary": "Download Clip",
+        "description": "Download the final clip file in the requested aspect ratio.\n\nThe original clip is 9:16. Other aspect ratios are generated on-demand\nusing FFmpeg letterbox with blurred background fill, then cached.",
+        "operationId": "download_clip_api_v1_clips__clip_id__download_get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } },
+          {
+            "name": "aspect",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "Target aspect ratio: 9:16, 16:9, 1:1, or 4:5",
+              "default": "9:16",
+              "title": "Aspect"
+            },
+            "description": "Target aspect ratio: 9:16, 16:9, 1:1, or 4:5"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/thumbnail": {
+      "get": {
+        "tags": ["clips"],
+        "summary": "Get Thumbnail",
+        "description": "Get clip thumbnail.",
+        "operationId": "get_thumbnail_api_v1_clips__clip_id__thumbnail_get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/trim": {
+      "put": {
+        "tags": ["clips"],
+        "summary": "Trim Clip",
+        "description": "Re-render a clip with new start/end timestamps.\n\nReuses the source video, existing caption style/reframe mode.\nDoes NOT re-run highlight detection or transcription.",
+        "operationId": "trim_clip_api_v1_clips__clip_id__trim_put",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TrimRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/ingest/url": {
+      "post": {
+        "tags": ["ingest"],
+        "summary": "Ingest Url",
+        "description": "Submit a video URL for download and processing.",
+        "operationId": "ingest_url_api_v1_ingest_url_post",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/IngestURLRequest" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VideoUploadResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/connections": {
+      "get": {
+        "tags": ["social"],
+        "summary": "List Connections",
+        "description": "List connected social accounts.",
+        "operationId": "list_connections_api_v1_user_connections_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/SocialConnectionResponse" },
+                  "type": "array",
+                  "title": "Response List Connections Api V1 User Connections Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/publish": {
+      "post": {
+        "tags": ["social"],
+        "summary": "Publish To Platform",
+        "description": "Publish a clip to a connected social platform.",
+        "operationId": "publish_to_platform_api_v1_clips__clip_id__publish_post",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublishRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PublicationResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clips/{clip_id}/publications": {
+      "get": {
+        "tags": ["social"],
+        "summary": "List Publications",
+        "description": "List all publications for a clip (must belong to user).",
+        "operationId": "list_publications_api_v1_clips__clip_id__publications_get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PublicationResponse" },
+                  "title": "Response List Publications Api V1 Clips  Clip Id  Publications Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/clips/{clip_id}": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "Clip Analytics",
+        "description": "Get performance analytics for a clip (must belong to user).",
+        "operationId": "clip_analytics_api_v1_analytics_clips__clip_id__get",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/dashboard": {
+      "get": {
+        "tags": ["analytics"],
+        "summary": "Analytics Dashboard",
+        "description": "Get overview analytics for the authenticated user's clips.",
+        "operationId": "analytics_dashboard_api_v1_analytics_dashboard_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/analytics/sync": {
+      "post": {
+        "tags": ["analytics"],
+        "summary": "Trigger Sync",
+        "description": "Trigger metrics sync from all platforms (for this user).",
+        "operationId": "trigger_sync_api_v1_analytics_sync_post",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/batch/urls": {
+      "post": {
+        "tags": ["batch"],
+        "summary": "Batch Ingest Urls",
+        "description": "Submit multiple URLs for batch processing.",
+        "operationId": "batch_ingest_urls_api_v1_batch_urls_post",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BatchURLRequest" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/batch/files": {
+      "post": {
+        "tags": ["batch"],
+        "summary": "Batch Upload Files",
+        "description": "Upload multiple video files for batch processing.",
+        "operationId": "batch_upload_files_api_v1_batch_files_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_batch_upload_files_api_v1_batch_files_post" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/meta/verticals": {
+      "get": {
+        "tags": ["meta"],
+        "summary": "Get Verticals",
+        "description": "Return available content vertical profiles.",
+        "operationId": "get_verticals_api_v1_meta_verticals_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/meta/templates": {
+      "get": {
+        "tags": ["meta"],
+        "summary": "Get Templates",
+        "description": "Return one-click generation templates.",
+        "operationId": "get_templates_api_v1_meta_templates_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/meta/caption-styles": {
+      "get": {
+        "tags": ["meta"],
+        "summary": "Get Caption Styles",
+        "description": "Return all available caption styles grouped by category.",
+        "operationId": "get_caption_styles_api_v1_meta_caption_styles_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/meta/reframe-modes": {
+      "get": {
+        "tags": ["meta"],
+        "summary": "Get Reframe Modes",
+        "description": "Return supported reframe modes.",
+        "operationId": "get_reframe_modes_api_v1_meta_reframe_modes_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/meta/aspect-ratios": {
+      "get": {
+        "tags": ["meta"],
+        "summary": "Get Aspect Ratios",
+        "description": "Return supported aspect ratios for clip output.",
+        "operationId": "get_aspect_ratios_api_v1_meta_aspect_ratios_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/brand": {
+      "get": {
+        "tags": ["brand"],
+        "summary": "Get Brand Kit",
+        "description": "Fetch a brand kit — operator default when `client_id` is omitted.",
+        "operationId": "get_brand_kit_api_v1_brand_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "put": {
+        "tags": ["brand"],
+        "summary": "Update Brand Kit",
+        "operationId": "update_brand_kit_api_v1_brand_put",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitUpdate" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/logo": {
+      "post": {
+        "tags": ["brand"],
+        "summary": "Upload Logo",
+        "operationId": "upload_logo_api_v1_brand_logo_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_logo_api_v1_brand_logo_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "get": {
+        "tags": ["brand"],
+        "summary": "Get Logo",
+        "description": "Serve the authenticated user's logo image.\n\nAccepts token via ?token= query param since <img> tags cannot send\nAuthorization headers. `client_id` picks the per-client kit; omit for\nthe operator default.",
+        "operationId": "get_logo_api_v1_brand_logo_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["brand"],
+        "summary": "Remove Logo",
+        "operationId": "remove_logo_api_v1_brand_logo_delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/intro": {
+      "post": {
+        "tags": ["brand"],
+        "summary": "Upload Intro",
+        "operationId": "upload_intro_api_v1_brand_intro_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_intro_api_v1_brand_intro_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "get": {
+        "tags": ["brand"],
+        "summary": "Get Intro",
+        "operationId": "get_intro_api_v1_brand_intro_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["brand"],
+        "summary": "Remove Intro",
+        "operationId": "remove_intro_api_v1_brand_intro_delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/outro": {
+      "post": {
+        "tags": ["brand"],
+        "summary": "Upload Outro",
+        "operationId": "upload_outro_api_v1_brand_outro_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_outro_api_v1_brand_outro_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "get": {
+        "tags": ["brand"],
+        "summary": "Get Outro",
+        "operationId": "get_outro_api_v1_brand_outro_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          },
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["brand"],
+        "summary": "Remove Outro",
+        "operationId": "remove_outro_api_v1_brand_outro_delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/avatar": {
+      "post": {
+        "tags": ["brand"],
+        "summary": "Upload Avatar",
+        "description": "Onboard a presenter avatar: upload a still photo, register it with\nHeyGen as a talking photo, and store the returned id on the brand kit.\n\nUnlike the rendering endpoints (which degrade gracefully when HeyGen is\ndown), this one genuinely REQUIRES HeyGen — there's nothing to do without\nit — so it returns a clear 503 when no key is configured rather than\nsilently no-op'ing.",
+        "operationId": "upload_avatar_api_v1_brand_avatar_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_avatar_api_v1_brand_avatar_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BrandKitResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["brand"],
+        "summary": "Remove Avatar",
+        "description": "Forget the onboarded avatar. Leaves any local upload on disk but clears\nthe HeyGen id + disables avatar intros for this kit.",
+        "operationId": "remove_avatar_api_v1_brand_avatar_delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/apply-to-existing": {
+      "post": {
+        "tags": ["brand"],
+        "summary": "Apply Brand To Existing",
+        "description": "Queue a rebrand of every ready clip scoped to the given brand kit.\n\nScope rules:\n  - client_id is None → only operator-owned clips (video.client_id is NULL)\n    get rebranded with the operator-default kit\n  - client_id is set → only that client's clips are rebranded with that\n    client's kit\n\nNever cross-applies — a Peter Drury kit cannot accidentally touch your\nown personal clips and vice versa.",
+        "operationId": "apply_brand_to_existing_api_v1_brand_apply_to_existing_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApplyResult" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/brand/clip-count": {
+      "get": {
+        "tags": ["brand"],
+        "summary": "Get Clip Count",
+        "description": "How many clips within the given brand kit's scope could be rebranded.\n\nScope matches the `/apply-to-existing` endpoint — operator-default clips\nwhen `client_id` is omitted, or only that client's clips when set.",
+        "operationId": "get_clip_count_api_v1_brand_clip_count_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/api-keys": {
+      "get": {
+        "tags": ["api-keys"],
+        "summary": "List Keys",
+        "operationId": "list_keys_api_v1_api_keys_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/ApiKeyResponse" },
+                  "type": "array",
+                  "title": "Response List Keys Api V1 Api Keys Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["api-keys"],
+        "summary": "Create Key",
+        "operationId": "create_key_api_v1_api_keys_post",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiKeyCreate" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiKeyCreateResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/api-keys/{key_id}": {
+      "delete": {
+        "tags": ["api-keys"],
+        "summary": "Revoke Key",
+        "operationId": "revoke_key_api_v1_api_keys__key_id__delete",
+        "parameters": [
+          { "name": "key_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Key Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signin": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Sign In",
+        "operationId": "sign_in_api_v1_auth_signin_post",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignInRequest" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignInResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signout": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "Sign Out",
+        "description": "Revoke all sessions for the caller's user — simple and safe for MVP.",
+        "operationId": "sign_out_api_v1_auth_signout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [{ "additionalProperties": true, "type": "object" }, { "type": "null" }],
+                "title": "Request Obj"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "Me",
+        "operationId": "me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MeResponse" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/profile": {
+      "get": {
+        "tags": ["user"],
+        "summary": "Get Profile",
+        "operationId": "get_profile_api_v1_user_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["user"],
+        "summary": "Update Profile",
+        "operationId": "update_profile_api_v1_user_profile_patch",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProfileUpdate" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/preferences": {
+      "patch": {
+        "tags": ["user"],
+        "summary": "Update Preferences",
+        "operationId": "update_preferences_api_v1_user_preferences_patch",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PreferencesUpdate" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/avatar": {
+      "post": {
+        "tags": ["user"],
+        "summary": "Upload Avatar",
+        "operationId": "upload_avatar_api_v1_user_avatar_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/Body_upload_avatar_api_v1_user_avatar_post" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user"],
+        "summary": "Remove Avatar",
+        "operationId": "remove_avatar_api_v1_user_avatar_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } } }
+          }
+        }
+      },
+      "get": {
+        "tags": ["user"],
+        "summary": "Get Avatar",
+        "description": "Serve the authenticated user's avatar.\n\nAccepts ?token= query param since <img> tags can't send Authorization headers.",
+        "operationId": "get_avatar_api_v1_user_avatar_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/activity": {
+      "get": {
+        "tags": ["user"],
+        "summary": "Get Activity",
+        "operationId": "get_activity_api_v1_user_activity_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ActivitySummary" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/sessions": {
+      "get": {
+        "tags": ["user"],
+        "summary": "List Sessions",
+        "operationId": "list_sessions_api_v1_user_sessions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/ActiveSession" },
+                  "type": "array",
+                  "title": "Response List Sessions Api V1 User Sessions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user/sessions/{session_id}": {
+      "delete": {
+        "tags": ["user"],
+        "summary": "Revoke Session",
+        "operationId": "revoke_session_api_v1_user_sessions__session_id__delete",
+        "parameters": [
+          { "name": "session_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Session Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/user/sessions/revoke-others": {
+      "post": {
+        "tags": ["user"],
+        "summary": "Revoke Other Sessions",
+        "description": "Revoke every session for this user EXCEPT the one making the request.",
+        "operationId": "revoke_other_sessions_api_v1_user_sessions_revoke_others_post",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    },
+    "/api/v1/user/account": {
+      "delete": {
+        "tags": ["user"],
+        "summary": "Delete Account",
+        "operationId": "delete_account_api_v1_user_account_delete",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeleteAccountRequest" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/operations": {
+      "get": {
+        "tags": ["operations"],
+        "summary": "List Operations",
+        "description": "List background operations scoped to the current user.\n\nFilters:\n- `video_id`: only operations for this video\n- `stage`: exact stage (e.g. \"clip.render\", \"brand.rebrand_clip\")\n- `status`: queued | running | completed | failed | retrying",
+        "operationId": "list_operations_api_v1_operations_get",
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Video Id" }
+          },
+          {
+            "name": "stage",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Stage" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Status" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "maximum": 500, "minimum": 1, "default": 200, "title": "Limit" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobListResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/operations/stream": {
+      "get": {
+        "tags": ["operations"],
+        "summary": "Stream Operations",
+        "description": "SSE stream of operation status changes.\n\nEventSource cannot send Authorization headers, so the session token is\naccepted via `?token=` query param — same pattern as the clips stream.",
+        "operationId": "stream_operations_api_v1_operations_stream_get",
+        "parameters": [
+          {
+            "name": "video_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Video Id" }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clients": {
+      "get": {
+        "tags": ["clients"],
+        "summary": "List Clients",
+        "operationId": "list_clients_api_v1_clients_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": { "$ref": "#/components/schemas/ClientResponse" },
+                  "type": "array",
+                  "title": "Response List Clients Api V1 Clients Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["clients"],
+        "summary": "Create Client",
+        "operationId": "create_client_api_v1_clients_post",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientCreate" } } },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{client_id}": {
+      "get": {
+        "tags": ["clients"],
+        "summary": "Get Client",
+        "operationId": "get_client_api_v1_clients__client_id__get",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["clients"],
+        "summary": "Update Client",
+        "operationId": "update_client_api_v1_clients__client_id__patch",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientUpdate" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClientResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["clients"],
+        "summary": "Delete Client",
+        "description": "Soft-archive — flip status to archived instead of dropping rows.\n\nVideos and clips under the client stay intact so the operator keeps the\nability to download delivered work. Hard delete is deferred until we\nhave a retention/archival policy.",
+        "operationId": "delete_client_api_v1_clients__client_id__delete",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{client_id}/clips": {
+      "get": {
+        "tags": ["clients"],
+        "summary": "List Client Clips",
+        "description": "Operator-authed view of clips belonging to a client.\n\nOptional `status` filter accepts any single clip_status value (e.g.\n`pending_review`, `approved`, `rejected`, `revision_requested`, `ready`).\nOmit to get every clip for the client, ordered newest-first.\n\nVariants are hidden by default so an operator's \"pending review\" badge\nreflects parent clips, not 40 rows that came from 10 parents × 4 styles.",
+        "operationId": "list_client_clips_api_v1_clients__client_id__clips_get",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Status" }
+          },
+          {
+            "name": "include_variants",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": false, "title": "Include Variants" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClipResponse" },
+                  "title": "Response List Client Clips Api V1 Clients  Client Id  Clips Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{client_id}/invite": {
+      "post": {
+        "tags": ["clients"],
+        "summary": "Create Invite",
+        "description": "Generate a magic-link token and email it to the client.\n\nReturns the full token plaintext ONCE. After this response, only the\nprefix is retrievable (so the operator can recognize the invite in\ntheir list). Losing the token means creating a fresh invite.",
+        "operationId": "create_invite_api_v1_clients__client_id__invite_post",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InviteCreate" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/InviteResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{client_id}/activity": {
+      "get": {
+        "tags": ["clients"],
+        "summary": "Get Activity",
+        "description": "Recent approve / reject / revision actions for this client's clips.",
+        "operationId": "get_activity_api_v1_clients__client_id__activity_get",
+        "parameters": [
+          { "name": "client_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Client Id" } },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 100, "title": "Limit" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReviewActivityResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/auth": {
+      "post": {
+        "tags": ["portal"],
+        "summary": "Portal Auth",
+        "description": "Exchange a magic-link token for a session summary.\n\nFrontends call this on page load to verify the token and fetch the\nclient display name before rendering the portal shell.",
+        "operationId": "portal_auth_api_v1_portal_auth_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortalSessionResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/clips": {
+      "get": {
+        "tags": ["portal"],
+        "summary": "Portal Clips",
+        "description": "Return every clip belonging to the token's client, bucketed by review state.\n\nSplitting into buckets server-side lets the UI render without re-iterating\nover a flat list, and makes the shape of the response itself a contract —\nany future UI knows exactly which states exist.",
+        "operationId": "portal_clips_api_v1_portal_clips_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortalClipList" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/clips/{clip_id}/review": {
+      "post": {
+        "tags": ["portal"],
+        "summary": "Portal Review Clip",
+        "description": "Approve / reject / request-revision a single clip.\n\nWrites the action to clip_reviews (append-only log for future scoring\nmodels) AND updates the clip.status (so the operator's dashboard sees\nthe decision immediately).",
+        "operationId": "portal_review_clip_api_v1_portal_clips__clip_id__review_post",
+        "parameters": [
+          { "name": "clip_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Clip Id" } },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Token" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReviewAction" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReviewActionResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/ingestion/sources": {
+      "get": {
+        "tags": ["ingestion"],
+        "summary": "List Sources",
+        "operationId": "list_sources_api_v1_ingestion_sources_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": false,
+            "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SourceResponse" },
+                  "title": "Response List Sources Api V1 Ingestion Sources Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["ingestion"],
+        "summary": "Create Source",
+        "operationId": "create_source_api_v1_ingestion_sources_post",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceCreate" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/ingestion/sources/{source_id}": {
+      "patch": {
+        "tags": ["ingestion"],
+        "summary": "Update Source",
+        "operationId": "update_source_api_v1_ingestion_sources__source_id__patch",
+        "parameters": [
+          { "name": "source_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Source Id" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceUpdate" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SourceResponse" } } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["ingestion"],
+        "summary": "Delete Source",
+        "operationId": "delete_source_api_v1_ingestion_sources__source_id__delete",
+        "parameters": [
+          { "name": "source_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Source Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/ingestion/sources/{source_id}/poll": {
+      "post": {
+        "tags": ["ingestion"],
+        "summary": "Poll Now",
+        "description": "Synchronous one-off poll — useful for testing before auto-poller is enabled.",
+        "operationId": "poll_now_api_v1_ingestion_sources__source_id__poll_post",
+        "parameters": [
+          { "name": "source_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Source Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": {
+            "description": "Validation Error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActiveSession": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "last_seen_at": { "type": "string", "format": "date-time", "title": "Last Seen At" },
+          "expires_at": { "type": "string", "format": "date-time", "title": "Expires At" },
+          "is_current": { "type": "boolean", "title": "Is Current" }
+        },
+        "type": "object",
+        "required": ["id", "created_at", "last_seen_at", "expires_at", "is_current"],
+        "title": "ActiveSession"
+      },
+      "ActivitySummary": {
+        "properties": {
+          "videos_total": { "type": "integer", "title": "Videos Total" },
+          "videos_ready": { "type": "integer", "title": "Videos Ready" },
+          "clips_total": { "type": "integer", "title": "Clips Total" },
+          "clips_ready": { "type": "integer", "title": "Clips Ready" },
+          "minutes_processed": { "type": "number", "title": "Minutes Processed" },
+          "publications_count": { "type": "integer", "title": "Publications Count" },
+          "total_views": { "type": "integer", "title": "Total Views" },
+          "total_likes": { "type": "integer", "title": "Total Likes" },
+          "first_upload_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "First Upload At" },
+          "last_activity_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Activity At" }
+        },
+        "type": "object",
+        "required": ["videos_total", "videos_ready", "clips_total", "clips_ready", "minutes_processed", "publications_count", "total_views", "total_likes", "first_upload_at", "last_activity_at"],
+        "title": "ActivitySummary"
+      },
+      "ApiKeyCreate": {
+        "properties": {
+          "name": { "type": "string", "title": "Name", "default": "" },
+          "rate_limit_per_hour": { "type": "integer", "title": "Rate Limit Per Hour", "default": 1000 }
+        },
+        "type": "object",
+        "title": "ApiKeyCreate"
+      },
+      "ApiKeyCreateResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "name": { "type": "string", "title": "Name" },
+          "key_prefix": { "type": "string", "title": "Key Prefix" },
+          "rate_limit_per_hour": { "type": "integer", "title": "Rate Limit Per Hour" },
+          "last_used_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Used At" },
+          "revoked": { "type": "boolean", "title": "Revoked" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "key": { "type": "string", "title": "Key" }
+        },
+        "type": "object",
+        "required": ["id", "name", "key_prefix", "rate_limit_per_hour", "last_used_at", "revoked", "created_at", "key"],
+        "title": "ApiKeyCreateResponse"
+      },
+      "ApiKeyResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "name": { "type": "string", "title": "Name" },
+          "key_prefix": { "type": "string", "title": "Key Prefix" },
+          "rate_limit_per_hour": { "type": "integer", "title": "Rate Limit Per Hour" },
+          "last_used_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Used At" },
+          "revoked": { "type": "boolean", "title": "Revoked" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "name", "key_prefix", "rate_limit_per_hour", "last_used_at", "revoked", "created_at"],
+        "title": "ApiKeyResponse"
+      },
+      "ApplyResult": {
+        "properties": {
+          "total": { "type": "integer", "title": "Total" },
+          "queued": { "type": "integer", "title": "Queued" },
+          "message": { "type": "string", "title": "Message" }
+        },
+        "type": "object",
+        "required": ["total", "queued", "message"],
+        "title": "ApplyResult"
+      },
+      "BatchURLRequest": {
+        "properties": {
+          "urls": { "items": { "type": "string" }, "type": "array", "title": "Urls" },
+          "clip_count": { "type": "integer", "title": "Clip Count", "default": 10 },
+          "caption_style": { "type": "string", "title": "Caption Style", "default": "hormozi" },
+          "reframe_mode": { "type": "string", "title": "Reframe Mode", "default": "center" },
+          "use_llm": { "type": "boolean", "title": "Use Llm", "default": true }
+        },
+        "type": "object",
+        "required": ["urls"],
+        "title": "BatchURLRequest"
+      },
+      "Body_batch_upload_files_api_v1_batch_files_post": {
+        "properties": {
+          "files": { "items": { "type": "string", "contentMediaType": "application/octet-stream" }, "type": "array", "title": "Files" }
+        },
+        "type": "object",
+        "required": ["files"],
+        "title": "Body_batch_upload_files_api_v1_batch_files_post"
+      },
+      "Body_upload_avatar_api_v1_brand_avatar_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_avatar_api_v1_brand_avatar_post"
+      },
+      "Body_upload_avatar_api_v1_user_avatar_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_avatar_api_v1_user_avatar_post"
+      },
+      "Body_upload_intro_api_v1_brand_intro_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_intro_api_v1_brand_intro_post"
+      },
+      "Body_upload_logo_api_v1_brand_logo_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_logo_api_v1_brand_logo_post"
+      },
+      "Body_upload_outro_api_v1_brand_outro_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_outro_api_v1_brand_outro_post"
+      },
+      "Body_upload_video_api_v1_videos_post": {
+        "properties": { "file": { "type": "string", "contentMediaType": "application/octet-stream", "title": "File" } },
+        "type": "object",
+        "required": ["file"],
+        "title": "Body_upload_video_api_v1_videos_post"
+      },
+      "BrandKitResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" },
+          "enabled": { "type": "boolean", "title": "Enabled" },
+          "primary_color": { "type": "string", "title": "Primary Color" },
+          "accent_color": { "type": "string", "title": "Accent Color" },
+          "watermark_position": { "type": "string", "title": "Watermark Position" },
+          "watermark_opacity": { "type": "number", "title": "Watermark Opacity" },
+          "watermark_scale": { "type": "number", "title": "Watermark Scale" },
+          "show_attribution": { "type": "boolean", "title": "Show Attribution" },
+          "attribution_platform": { "type": "string", "title": "Attribution Platform" },
+          "custom_attribution_text": { "type": "string", "title": "Custom Attribution Text" },
+          "logo_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Logo Url" },
+          "intro_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Intro Url" },
+          "outro_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Outro Url" },
+          "avatar_enabled": { "type": "boolean", "title": "Avatar Enabled", "default": false },
+          "avatar_intro_text": { "type": "string", "title": "Avatar Intro Text", "default": "" },
+          "has_avatar": { "type": "boolean", "title": "Has Avatar", "default": false }
+        },
+        "type": "object",
+        "required": ["id", "client_id", "enabled", "primary_color", "accent_color", "watermark_position", "watermark_opacity", "watermark_scale", "show_attribution", "attribution_platform", "custom_attribution_text", "logo_url", "intro_url", "outro_url"],
+        "title": "BrandKitResponse"
+      },
+      "BrandKitUpdate": {
+        "properties": {
+          "enabled": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Enabled" },
+          "primary_color": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Primary Color" },
+          "accent_color": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Accent Color" },
+          "watermark_position": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Watermark Position" },
+          "watermark_opacity": { "anyOf": [{ "type": "number" }, { "type": "null" }], "title": "Watermark Opacity" },
+          "watermark_scale": { "anyOf": [{ "type": "number" }, { "type": "null" }], "title": "Watermark Scale" },
+          "show_attribution": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Show Attribution" },
+          "attribution_platform": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Attribution Platform" },
+          "custom_attribution_text": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Custom Attribution Text" },
+          "avatar_enabled": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Avatar Enabled" },
+          "avatar_intro_text": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Avatar Intro Text" }
+        },
+        "type": "object",
+        "title": "BrandKitUpdate"
+      },
+      "ClientCreate": {
+        "properties": {
+          "name": { "type": "string", "maxLength": 120, "minLength": 1, "title": "Name" },
+          "contact_email": { "type": "string", "title": "Contact Email", "default": "" },
+          "require_review": { "type": "boolean", "title": "Require Review", "default": true },
+          "notes": { "type": "string", "title": "Notes", "default": "" }
+        },
+        "type": "object",
+        "required": ["name"],
+        "title": "ClientCreate"
+      },
+      "ClientResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "name": { "type": "string", "title": "Name" },
+          "slug": { "type": "string", "title": "Slug" },
+          "contact_email": { "type": "string", "title": "Contact Email" },
+          "status": { "type": "string", "title": "Status" },
+          "require_review": { "type": "boolean", "title": "Require Review" },
+          "notes": { "type": "string", "title": "Notes" },
+          "stats": { "$ref": "#/components/schemas/ClientStats" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": ["id", "name", "slug", "contact_email", "status", "require_review", "notes", "stats", "created_at", "updated_at"],
+        "title": "ClientResponse"
+      },
+      "ClientStats": {
+        "properties": {
+          "video_count": { "type": "integer", "title": "Video Count" },
+          "clip_count": { "type": "integer", "title": "Clip Count" },
+          "clips_pending_review": { "type": "integer", "title": "Clips Pending Review" },
+          "clips_approved": { "type": "integer", "title": "Clips Approved" }
+        },
+        "type": "object",
+        "required": ["video_count", "clip_count", "clips_pending_review", "clips_approved"],
+        "title": "ClientStats"
+      },
+      "ClientUpdate": {
+        "properties": {
+          "name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Name" },
+          "contact_email": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Contact Email" },
+          "status": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Status" },
+          "require_review": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Require Review" },
+          "notes": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Notes" }
+        },
+        "type": "object",
+        "title": "ClientUpdate"
+      },
+      "ClipListResponse": {
+        "properties": {
+          "clips": { "items": { "$ref": "#/components/schemas/ClipResponse" }, "type": "array", "title": "Clips" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["clips", "total"],
+        "title": "ClipListResponse"
+      },
+      "ClipResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "video_id": { "type": "string", "title": "Video Id" },
+          "title": { "type": "string", "title": "Title" },
+          "start_ms": { "type": "integer", "title": "Start Ms" },
+          "end_ms": { "type": "integer", "title": "End Ms" },
+          "duration_ms": { "type": "integer", "title": "Duration Ms" },
+          "virality_score": { "type": "number", "title": "Virality Score" },
+          "scores": { "additionalProperties": true, "type": "object", "title": "Scores", "default": {} },
+          "transcript_text": { "type": "string", "title": "Transcript Text" },
+          "reason": { "type": "string", "title": "Reason" },
+          "status": { "type": "string", "title": "Status" },
+          "caption_style": { "type": "string", "title": "Caption Style" },
+          "reframe_mode": { "type": "string", "title": "Reframe Mode" },
+          "thumbnail_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Thumbnail Url" },
+          "download_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Download Url" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "variant_of_clip_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Variant Of Clip Id" },
+          "variant_count": { "type": "integer", "title": "Variant Count", "default": 0 },
+          "generation_settings": { "additionalProperties": true, "type": "object", "title": "Generation Settings", "default": {} }
+        },
+        "type": "object",
+        "required": ["id", "video_id", "title", "start_ms", "end_ms", "duration_ms", "virality_score", "transcript_text", "reason", "status", "caption_style", "reframe_mode", "created_at"],
+        "title": "ClipResponse"
+      },
+      "DeleteAccountRequest": {
+        "properties": { "confirm_email": { "type": "string", "title": "Confirm Email" } },
+        "type": "object",
+        "required": ["confirm_email"],
+        "title": "DeleteAccountRequest"
+      },
+      "GenerateClipsRequest": {
+        "properties": {
+          "clip_count": { "type": "integer", "title": "Clip Count", "default": 10 },
+          "min_duration_sec": { "type": "integer", "title": "Min Duration Sec", "default": 45 },
+          "max_duration_sec": { "type": "integer", "title": "Max Duration Sec", "default": 75 },
+          "caption_style": { "type": "string", "title": "Caption Style", "default": "mix" },
+          "reframe_mode": { "type": "string", "title": "Reframe Mode", "default": "center" },
+          "use_llm": { "type": "boolean", "title": "Use Llm", "default": true },
+          "custom_prompt": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Custom Prompt" },
+          "vertical": { "type": "string", "title": "Vertical", "default": "auto" },
+          "hook_mode": { "type": "string", "title": "Hook Mode", "default": "off" },
+          "custom_hook_text": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Custom Hook Text" }
+        },
+        "type": "object",
+        "title": "GenerateClipsRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": { "items": { "$ref": "#/components/schemas/ValidationError" }, "type": "array", "title": "Detail" }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IngestURLRequest": {
+        "properties": {
+          "url": { "type": "string", "title": "Url" },
+          "max_duration_sec": { "type": "integer", "title": "Max Duration Sec", "default": 10800 },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+        },
+        "type": "object",
+        "required": ["url"],
+        "title": "IngestURLRequest"
+      },
+      "InviteCreate": {
+        "properties": {
+          "email": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Email" },
+          "expires_in_days": { "type": "integer", "maximum": 90, "minimum": 1, "title": "Expires In Days", "default": 14 }
+        },
+        "type": "object",
+        "title": "InviteCreate"
+      },
+      "InviteResponse": {
+        "properties": {
+          "token_prefix": { "type": "string", "title": "Token Prefix" },
+          "token": { "type": "string", "title": "Token" },
+          "portal_url": { "type": "string", "title": "Portal Url" },
+          "expires_at": { "type": "string", "format": "date-time", "title": "Expires At" }
+        },
+        "type": "object",
+        "required": ["token_prefix", "token", "portal_url", "expires_at"],
+        "title": "InviteResponse"
+      },
+      "JobListResponse": {
+        "properties": {
+          "jobs": { "items": { "$ref": "#/components/schemas/JobResponse" }, "type": "array", "title": "Jobs" },
+          "total": { "type": "integer", "title": "Total" },
+          "running": { "type": "integer", "title": "Running" },
+          "failed": { "type": "integer", "title": "Failed" },
+          "completed": { "type": "integer", "title": "Completed" }
+        },
+        "type": "object",
+        "required": ["jobs", "total", "running", "failed", "completed"],
+        "title": "JobListResponse"
+      },
+      "JobResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "video_id": { "type": "string", "title": "Video Id" },
+          "clip_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Clip Id" },
+          "stage": { "type": "string", "title": "Stage" },
+          "status": { "type": "string", "title": "Status" },
+          "worker_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Worker Id" },
+          "started_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Started At" },
+          "completed_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Completed At" },
+          "duration_ms": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Duration Ms" },
+          "error_message": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Error Message" },
+          "retry_count": { "type": "integer", "title": "Retry Count" },
+          "metadata": { "additionalProperties": true, "type": "object", "title": "Metadata" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "video_title": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Video Title" },
+          "clip_title": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Clip Title" },
+          "clip_is_variant": { "type": "boolean", "title": "Clip Is Variant", "default": false }
+        },
+        "type": "object",
+        "required": ["id", "video_id", "clip_id", "stage", "status", "worker_id", "started_at", "completed_at", "duration_ms", "error_message", "retry_count", "metadata", "created_at"],
+        "title": "JobResponse"
+      },
+      "MeResponse": {
+        "properties": {
+          "user_id": { "type": "string", "title": "User Id" },
+          "email": { "type": "string", "title": "Email" },
+          "plan": { "type": "string", "title": "Plan" },
+          "minutes_used": { "type": "integer", "title": "Minutes Used" },
+          "minutes_limit": { "type": "integer", "title": "Minutes Limit" }
+        },
+        "type": "object",
+        "required": ["user_id", "email", "plan", "minutes_used", "minutes_limit"],
+        "title": "MeResponse"
+      },
+      "PortalClip": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "video_id": { "type": "string", "title": "Video Id" },
+          "title": { "type": "string", "title": "Title" },
+          "start_ms": { "type": "integer", "title": "Start Ms" },
+          "end_ms": { "type": "integer", "title": "End Ms" },
+          "duration_ms": { "type": "integer", "title": "Duration Ms" },
+          "virality_score": { "type": "number", "title": "Virality Score" },
+          "transcript_text": { "type": "string", "title": "Transcript Text" },
+          "reason": { "type": "string", "title": "Reason" },
+          "status": { "type": "string", "title": "Status" },
+          "caption_style": { "type": "string", "title": "Caption Style" },
+          "thumbnail_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Thumbnail Url" },
+          "download_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Download Url" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "video_id", "title", "start_ms", "end_ms", "duration_ms", "virality_score", "transcript_text", "reason", "status", "caption_style", "thumbnail_url", "download_url", "created_at"],
+        "title": "PortalClip"
+      },
+      "PortalClipList": {
+        "properties": {
+          "client_name": { "type": "string", "title": "Client Name" },
+          "pending": { "items": { "$ref": "#/components/schemas/PortalClip" }, "type": "array", "title": "Pending" },
+          "approved": { "items": { "$ref": "#/components/schemas/PortalClip" }, "type": "array", "title": "Approved" },
+          "rejected": { "items": { "$ref": "#/components/schemas/PortalClip" }, "type": "array", "title": "Rejected" },
+          "revision_requested": { "items": { "$ref": "#/components/schemas/PortalClip" }, "type": "array", "title": "Revision Requested" }
+        },
+        "type": "object",
+        "required": ["client_name", "pending", "approved", "rejected", "revision_requested"],
+        "title": "PortalClipList"
+      },
+      "PortalSessionResponse": {
+        "properties": {
+          "client_id": { "type": "string", "title": "Client Id" },
+          "client_name": { "type": "string", "title": "Client Name" },
+          "contact_email": { "type": "string", "title": "Contact Email" },
+          "require_review": { "type": "boolean", "title": "Require Review" },
+          "expires_at": { "type": "string", "format": "date-time", "title": "Expires At" }
+        },
+        "type": "object",
+        "required": ["client_id", "client_name", "contact_email", "require_review", "expires_at"],
+        "title": "PortalSessionResponse"
+      },
+      "PreferencesUpdate": {
+        "properties": {
+          "default_caption_style": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Default Caption Style" },
+          "default_reframe_mode": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Default Reframe Mode" },
+          "default_vertical": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Default Vertical" },
+          "default_hook_mode": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Default Hook Mode" },
+          "default_clip_count": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Default Clip Count" },
+          "default_min_duration_sec": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Default Min Duration Sec" },
+          "default_max_duration_sec": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Default Max Duration Sec" },
+          "theme": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Theme" }
+        },
+        "type": "object",
+        "title": "PreferencesUpdate"
+      },
+      "ProfileUpdate": {
+        "properties": {
+          "display_name": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Display Name" },
+          "handle": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Handle" },
+          "bio": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Bio" },
+          "timezone": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Timezone" },
+          "tiktok_handle": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Tiktok Handle" },
+          "youtube_handle": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Youtube Handle" },
+          "instagram_handle": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Instagram Handle" }
+        },
+        "type": "object",
+        "title": "ProfileUpdate"
+      },
+      "PublicationResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "clip_id": { "type": "string", "title": "Clip Id" },
+          "platform": { "type": "string", "title": "Platform" },
+          "status": { "type": "string", "title": "Status" },
+          "platform_post_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Platform Post Id" },
+          "views": { "type": "integer", "title": "Views" },
+          "likes": { "type": "integer", "title": "Likes" },
+          "shares": { "type": "integer", "title": "Shares" },
+          "published_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Published At" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "clip_id", "platform", "status", "platform_post_id", "views", "likes", "shares", "published_at", "created_at"],
+        "title": "PublicationResponse"
+      },
+      "PublishRequest": {
+        "properties": {
+          "connection_id": { "type": "string", "title": "Connection Id" },
+          "title": { "type": "string", "title": "Title", "default": "" },
+          "description": { "type": "string", "title": "Description", "default": "" }
+        },
+        "type": "object",
+        "required": ["connection_id"],
+        "title": "PublishRequest"
+      },
+      "ReviewAction": {
+        "properties": {
+          "action": { "type": "string", "pattern": "^(approve|reject|revision)$", "title": "Action" },
+          "comment": { "type": "string", "title": "Comment", "default": "" },
+          "reviewer_email": { "type": "string", "title": "Reviewer Email", "default": "" }
+        },
+        "type": "object",
+        "required": ["action"],
+        "title": "ReviewAction"
+      },
+      "ReviewActionResponse": {
+        "properties": {
+          "ok": { "type": "boolean", "title": "Ok" },
+          "clip_id": { "type": "string", "title": "Clip Id" },
+          "new_status": { "type": "string", "title": "New Status" }
+        },
+        "type": "object",
+        "required": ["ok", "clip_id", "new_status"],
+        "title": "ReviewActionResponse"
+      },
+      "ReviewActivityEntry": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "clip_id": { "type": "string", "title": "Clip Id" },
+          "action": { "type": "string", "title": "Action" },
+          "comment": { "type": "string", "title": "Comment" },
+          "reviewer_email": { "type": "string", "title": "Reviewer Email" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "clip_id", "action", "comment", "reviewer_email", "created_at"],
+        "title": "ReviewActivityEntry"
+      },
+      "ReviewActivityResponse": {
+        "properties": {
+          "entries": { "items": { "$ref": "#/components/schemas/ReviewActivityEntry" }, "type": "array", "title": "Entries" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["entries", "total"],
+        "title": "ReviewActivityResponse"
+      },
+      "SignInRequest": {
+        "properties": {
+          "email": { "type": "string", "title": "Email" },
+          "beta_code": { "type": "string", "title": "Beta Code" }
+        },
+        "type": "object",
+        "required": ["email", "beta_code"],
+        "title": "SignInRequest"
+      },
+      "SignInResponse": {
+        "properties": {
+          "token": { "type": "string", "title": "Token" },
+          "user_id": { "type": "string", "title": "User Id" },
+          "email": { "type": "string", "title": "Email" },
+          "expires_at": { "type": "string", "format": "date-time", "title": "Expires At" }
+        },
+        "type": "object",
+        "required": ["token", "user_id", "email", "expires_at"],
+        "title": "SignInResponse"
+      },
+      "SocialConnectionResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "platform": { "type": "string", "title": "Platform" },
+          "platform_username": { "type": "string", "title": "Platform Username" },
+          "connected": { "type": "boolean", "title": "Connected" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "platform", "platform_username", "connected", "created_at"],
+        "title": "SocialConnectionResponse"
+      },
+      "SourceCreate": {
+        "properties": {
+          "source_type": { "type": "string", "title": "Source Type", "default": "youtube_channel" },
+          "source_url": { "type": "string", "title": "Source Url" },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" },
+          "enabled": { "type": "boolean", "title": "Enabled", "default": true },
+          "auto_generate": { "type": "boolean", "title": "Auto Generate", "default": true },
+          "include_long_form": { "type": "boolean", "title": "Include Long Form", "default": true },
+          "include_shorts": { "type": "boolean", "title": "Include Shorts", "default": false }
+        },
+        "type": "object",
+        "required": ["source_url"],
+        "title": "SourceCreate"
+      },
+      "SourceResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" },
+          "source_type": { "type": "string", "title": "Source Type" },
+          "source_url": { "type": "string", "title": "Source Url" },
+          "feed_url": { "type": "string", "title": "Feed Url" },
+          "display_name": { "type": "string", "title": "Display Name" },
+          "enabled": { "type": "boolean", "title": "Enabled" },
+          "auto_generate": { "type": "boolean", "title": "Auto Generate" },
+          "include_long_form": { "type": "boolean", "title": "Include Long Form" },
+          "include_shorts": { "type": "boolean", "title": "Include Shorts" },
+          "last_polled_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Polled At" },
+          "last_video_published_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Video Published At" },
+          "last_error": { "type": "string", "title": "Last Error" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "client_id", "source_type", "source_url", "feed_url", "display_name", "enabled", "auto_generate", "include_long_form", "include_shorts", "last_polled_at", "last_video_published_at", "last_error", "created_at"],
+        "title": "SourceResponse"
+      },
+      "SourceUpdate": {
+        "properties": {
+          "enabled": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Enabled" },
+          "auto_generate": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Auto Generate" },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" },
+          "include_long_form": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Include Long Form" },
+          "include_shorts": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Include Shorts" }
+        },
+        "type": "object",
+        "title": "SourceUpdate"
+      },
+      "TranscriptResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "video_id": { "type": "string", "title": "Video Id" },
+          "full_text": { "type": "string", "title": "Full Text" },
+          "language": { "type": "string", "title": "Language" },
+          "language_probability": { "type": "number", "title": "Language Probability" },
+          "word_count": { "type": "integer", "title": "Word Count" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "video_id", "full_text", "language", "language_probability", "word_count", "created_at"],
+        "title": "TranscriptResponse"
+      },
+      "TrimRequest": {
+        "properties": {
+          "start_ms": { "type": "integer", "title": "Start Ms" },
+          "end_ms": { "type": "integer", "title": "End Ms" }
+        },
+        "type": "object",
+        "required": ["start_ms", "end_ms"],
+        "title": "TrimRequest"
+      },
+      "UserProfile": {
+        "properties": {
+          "user_id": { "type": "string", "title": "User Id" },
+          "email": { "type": "string", "title": "Email" },
+          "display_name": { "type": "string", "title": "Display Name" },
+          "handle": { "type": "string", "title": "Handle" },
+          "bio": { "type": "string", "title": "Bio" },
+          "avatar_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Avatar Url" },
+          "timezone": { "type": "string", "title": "Timezone" },
+          "tiktok_handle": { "type": "string", "title": "Tiktok Handle" },
+          "youtube_handle": { "type": "string", "title": "Youtube Handle" },
+          "instagram_handle": { "type": "string", "title": "Instagram Handle" },
+          "default_caption_style": { "type": "string", "title": "Default Caption Style" },
+          "default_reframe_mode": { "type": "string", "title": "Default Reframe Mode" },
+          "default_vertical": { "type": "string", "title": "Default Vertical" },
+          "default_hook_mode": { "type": "string", "title": "Default Hook Mode" },
+          "default_clip_count": { "type": "integer", "title": "Default Clip Count" },
+          "default_min_duration_sec": { "type": "integer", "title": "Default Min Duration Sec" },
+          "default_max_duration_sec": { "type": "integer", "title": "Default Max Duration Sec" },
+          "theme": { "type": "string", "title": "Theme" },
+          "plan": { "type": "string", "title": "Plan" },
+          "minutes_used": { "type": "integer", "title": "Minutes Used" },
+          "minutes_limit": { "type": "integer", "title": "Minutes Limit" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "last_seen_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Last Seen At" }
+        },
+        "type": "object",
+        "required": ["user_id", "email", "display_name", "handle", "bio", "avatar_url", "timezone", "tiktok_handle", "youtube_handle", "instagram_handle", "default_caption_style", "default_reframe_mode", "default_vertical", "default_hook_mode", "default_clip_count", "default_min_duration_sec", "default_max_duration_sec", "theme", "plan", "minutes_used", "minutes_limit", "created_at", "last_seen_at"],
+        "title": "UserProfile"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": { "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] }, "type": "array", "title": "Location" },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      },
+      "VariantsRequest": {
+        "properties": {
+          "count": { "type": "integer", "title": "Count", "default": 3 },
+          "vary": { "items": { "type": "string" }, "type": "array", "title": "Vary", "default": ["caption_style", "reframe_mode", "hook_mode"] }
+        },
+        "type": "object",
+        "title": "VariantsRequest"
+      },
+      "VideoListResponse": {
+        "properties": {
+          "videos": { "items": { "$ref": "#/components/schemas/VideoResponse" }, "type": "array", "title": "Videos" },
+          "total": { "type": "integer", "title": "Total" }
+        },
+        "type": "object",
+        "required": ["videos", "total"],
+        "title": "VideoListResponse"
+      },
+      "VideoResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "title": { "type": "string", "title": "Title" },
+          "source_type": { "type": "string", "title": "Source Type" },
+          "source_url": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Source Url" },
+          "duration_ms": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Duration Ms" },
+          "width": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Width" },
+          "height": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Height" },
+          "status": { "type": "string", "title": "Status" },
+          "error_message": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Error Message" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "clip_count": { "type": "integer", "title": "Clip Count", "default": 0 },
+          "client_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Client Id" }
+        },
+        "type": "object",
+        "required": ["id", "title", "source_type", "source_url", "duration_ms", "width", "height", "status", "error_message", "created_at"],
+        "title": "VideoResponse"
+      },
+      "VideoUploadResponse": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "title": { "type": "string", "title": "Title" },
+          "status": { "type": "string", "title": "Status" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "title", "status", "created_at"],
+        "title": "VideoUploadResponse"
+      }
+    }
+  }
+}

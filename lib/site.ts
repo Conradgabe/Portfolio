@@ -251,7 +251,7 @@ export const projects: Project[] = [
   {
     slug: "pg-tailor",
     name: "PG-Tailor",
-    tagline: "AI career platform: résumé tailoring, fit scoring & interview coaching",
+    tagline: "AI career platform: résumé tailoring, job-matching & a career assistant",
     year: "2026",
     category: "AI · Career Platform",
     visibility: "private",
@@ -265,22 +265,22 @@ export const projects: Project[] = [
       { src: "/projects/pg-tailor/autopilot.png", alt: "PG-Tailor autopilot: AI scans job boards and ranks the best matches for your profile", w: 1919, h: 943, label: "pg-tailor · autopilot" },
     ],
     summary:
-      "A full-stack AI career platform with a FastAPI backend that orchestrates chained LLM calls across OpenAI and Claude: résumé tailoring, candidate fit scoring, live job-listing ingestion, and AI interview coaching, with prompt architecture tuned for quality, token efficiency, and latency under concurrent sessions.",
+      "A full-stack AI career platform built on Next.js App Router route handlers. It parses a résumé, tailors it to any job description token-by-token over Server-Sent Events, and exports PDF/DOCX in seven templates. A cached SerpAPI job board feeds an Autopilot that scores every listing against your profile with Gemini, alongside application history with status tracking and a career-assistant chat grounded in your tailored résumé.",
     problem:
-      "Tailoring a CV to every role, judging fit, and prepping for interviews by hand is slow, and generic AI output doesn't hold up under real job-hunt volume.",
+      "Tailoring a CV to every role, tracking applications, and judging which jobs are worth chasing by hand is slow, and generic AI output doesn't hold up under real job-hunt volume.",
     approach: [
-      "FastAPI backend orchestrating chained LLM calls across the OpenAI and Claude APIs",
-      "Résumé tailoring and candidate fit scoring, per role",
-      "Live job-listing ingestion and AI interview coaching",
-      "Prompt architecture tuned for output quality, token efficiency, and latency under concurrent sessions",
+      "Next.js App Router route handlers serving a typed API on the same origin as the UI",
+      "Streamed résumé tailoring over Server-Sent Events; PDF/DOCX export across seven templates",
+      "Cached SerpAPI job board with archiving, plus a Gemini-scored Autopilot that ranks jobs against your profile",
+      "Application history with status tracking and a career-assistant chat grounded in a tailored résumé",
     ],
     highlights: [
-      "Chained OpenAI + Claude LLM calls",
-      "Candidate fit scoring per role",
-      "AI interview coaching",
-      "Live job-listing ingestion",
+      "Streamed (SSE) résumé tailoring",
+      "Gemini job-match scoring (Autopilot)",
+      "PDF/DOCX export · 7 templates",
+      "SerpAPI job board + history",
     ],
-    stack: ["FastAPI", "Python", "OpenAI", "Claude", "PostgreSQL", "React 18", "TypeScript", "TanStack Query", "Docker"],
+    stack: ["Next.js", "TypeScript", "React", "Gemini", "SerpAPI", "Prisma", "SSE", "Docker"],
     role: "Design & build (solo)",
   },
   {

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, Code2, Lock } from "lucide-react";
 import { projects } from "@/lib/site";
+import { apiDocs } from "@/lib/api-docs";
 import { ProjectMock } from "@/components/mocks/ProjectMock";
+import { ApiReference } from "@/components/sections/ApiReference";
 import { ScreenshotFrame } from "@/components/ui/ScreenshotFrame";
 import { Reveal } from "@/components/ui/Reveal";
 
@@ -36,6 +38,7 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   const next = projects[(index + 1) % projects.length];
+  const apiDoc = apiDocs[project.slug];
 
   return (
     <main id="main" className="flex-1">
@@ -175,6 +178,8 @@ export default async function ProjectPage({
             </div>
           </section>
         </Reveal>
+
+        {apiDoc && <ApiReference doc={apiDoc} />}
 
         {project.images && project.images.length > 1 && (
           <Reveal>

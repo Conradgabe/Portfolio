@@ -1,0 +1,774 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PG Tailor API",
+    "version": "1.0.0",
+    "description": "AI-powered resume (\"PG\") tailoring app. The backend is implemented as Next.js App Router route handlers under `/api`, served on the same origin as the frontend. All endpoints except `/api/auth/*` are protected by middleware that requires the `auth-token` cookie obtained from `POST /api/auth/login`; unauthenticated requests are redirected to `/login`.\n\nTwo endpoints return Server-Sent Events (`text/event-stream`) rather than JSON: `POST /api/tailor` and `POST /api/chats/{id}/messages`. Each SSE line is of the form `data: {\"type\":\"text\"|\"done\"|\"error\", ...}`."
+  },
+  "servers": [{ "url": "http://localhost:3000", "description": "Local development" }],
+  "tags": [
+    { "name": "Auth", "description": "Hardcoded single-user login gate" },
+    { "name": "Tailoring", "description": "Parse resumes, AI-tailor them, and export PDF/DOCX" },
+    { "name": "Jobs", "description": "Cached + archived job board (SerpAPI)" },
+    { "name": "Saved PGs", "description": "Stored master resumes" },
+    { "name": "History", "description": "Tailored resume records and status tracking" },
+    { "name": "Autopilot", "description": "AI job-match scoring against a profile" },
+    { "name": "Chat", "description": "AI career assistant grounded in a tailored resume" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "auth-token",
+        "description": "Static token set by POST /api/auth/login. Value is `pg-tailor-authenticated`."
+      }
+    },
+    "schemas": {
+      "Error": { "type": "object", "properties": { "error": { "type": "string" } }, "required": ["error"] },
+      "Success": { "type": "object", "properties": { "success": { "type": "boolean" } } },
+      "NormalizedJob": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "externalId": { "type": "string" },
+          "source": { "type": "string", "example": "serpapi" },
+          "title": { "type": "string" },
+          "company": { "type": "string" },
+          "location": { "type": "string" },
+          "jobType": { "type": "string" },
+          "category": { "type": "string" },
+          "description": { "type": "string" },
+          "url": { "type": "string" },
+          "salary": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "companyLogo": { "type": "string" },
+          "publishedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ArchivedJob": {
+        "allOf": [
+          { "$ref": "#/components/schemas/NormalizedJob" },
+          {
+            "type": "object",
+            "properties": {
+              "archivedAt": { "type": "string", "format": "date-time" },
+              "status": { "type": "string" }
+            }
+          }
+        ]
+      },
+      "PagedJobs": {
+        "type": "object",
+        "properties": {
+          "jobs": { "type": "array", "items": { "$ref": "#/components/schemas/NormalizedJob" } },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "PagedArchivedJobs": {
+        "type": "object",
+        "properties": {
+          "jobs": { "type": "array", "items": { "$ref": "#/components/schemas/ArchivedJob" } },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "JobRecord": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "cachedJobId": { "type": ["string", "null"] },
+          "jobTitle": { "type": "string" },
+          "company": { "type": "string" },
+          "jobUrl": { "type": "string" },
+          "jobDescription": { "type": "string" },
+          "originalPgText": { "type": "string" },
+          "tailoredContent": { "type": "string" },
+          "status": { "type": "string", "default": "tailored", "example": "tailored" },
+          "appliedAt": { "type": ["string", "null"], "format": "date-time" },
+          "notes": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PagedRecords": {
+        "type": "object",
+        "properties": {
+          "records": { "type": "array", "items": { "$ref": "#/components/schemas/JobRecord" } },
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      },
+      "SavedPG": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fileName": { "type": "string" },
+          "pgText": { "type": "string" },
+          "charCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SavedPGSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fileName": { "type": "string" },
+          "charCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "pgText": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "JobScan": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "cachedJobId": { "type": "string" },
+          "jobTitle": { "type": "string" },
+          "company": { "type": "string" },
+          "jobUrl": { "type": "string" },
+          "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "reasoning": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "skipped", "tailored"], "default": "pending" },
+          "scanBatchId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Chat": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "jobRecordId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "chatId": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "assistant"] },
+          "content": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "security": [{ "cookieAuth": [] }],
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log in",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "test@test.com" },
+                  "password": { "type": "string", "example": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logged in; sets httpOnly `auth-token` cookie",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Success" } } }
+          },
+          "401": { "description": "Invalid credentials", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "400": { "description": "Invalid request", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log out",
+        "responses": {
+          "200": { "description": "Logged out; clears the cookie", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Success" } } } }
+        }
+      }
+    },
+    "/api/parse-pg": {
+      "post": {
+        "tags": ["Tailoring"],
+        "summary": "Extract text from an uploaded resume (PDF/DOCX)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary", "description": "PDF, DOCX, or DOC. Max 10MB." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Extracted text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "text": { "type": "string" }, "filename": { "type": "string" } }
+                }
+              }
+            }
+          },
+          "400": { "description": "No file / too large / unsupported / empty", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Parse failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/tailor": {
+      "post": {
+        "tags": ["Tailoring"],
+        "summary": "AI-tailor a resume to a job description (streamed)",
+        "description": "Returns Server-Sent Events. Each event: `data: {\"type\":\"text\",\"text\":\"...\"}` for content chunks, `data: {\"type\":\"done\"}` at the end, or `data: {\"type\":\"error\",\"error\":\"...\"}`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pgText", "jobDescription"],
+                "properties": { "pgText": { "type": "string" }, "jobDescription": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "SSE stream of tailored resume markdown", "content": { "text/event-stream": { "schema": { "type": "string" } } } },
+          "400": { "description": "Missing pgText or jobDescription", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Tailoring failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/generate": {
+      "post": {
+        "tags": ["Tailoring"],
+        "summary": "Render tailored markdown to a PDF or DOCX file",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["content", "format"],
+                "properties": {
+                  "content": { "type": "string", "description": "Tailored resume markdown" },
+                  "format": { "type": "string", "enum": ["pdf", "docx"] },
+                  "templateId": {
+                    "type": "string",
+                    "enum": ["classic", "modern", "minimal", "professional", "executive", "bold", "two-column"],
+                    "default": "modern"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated document (attachment)",
+            "content": {
+              "application/pdf": { "schema": { "type": "string", "format": "binary" } },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "400": { "description": "Missing content / invalid format", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Generation failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "tags": ["Jobs"],
+        "summary": "Search cached jobs (paginated, 20/page)",
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Matches title/company/tags/category" },
+          { "name": "location", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "remote", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "nigeria", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated jobs", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PagedJobs" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Jobs"],
+        "summary": "Clear the entire cached-jobs table",
+        "responses": {
+          "200": { "description": "Count deleted", "content": { "application/json": { "schema": { "type": "object", "properties": { "deleted": { "type": "integer" } } } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/jobs/{id}": {
+      "get": {
+        "tags": ["Jobs"],
+        "summary": "Get a single job (cache, falling back to archive)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Job", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NormalizedJob" } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/jobs/refresh": {
+      "post": {
+        "tags": ["Jobs"],
+        "summary": "Fetch fresh jobs from SerpAPI and archive old ones",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": { "type": "string", "description": "If set, fetch only this role; else defaults to Backend/AI/Frontend Engineer" },
+                  "nigeria": { "type": "boolean", "description": "Appends 'in Nigeria' to each query" },
+                  "datePosted": { "type": "string", "enum": ["3days", "week"], "default": "week" },
+                  "recent": { "type": "boolean", "description": "Legacy; true => 3days" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refresh summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "archived": { "type": "integer" }, "fetched": { "type": "integer" }, "newJobs": { "type": "integer" } }
+                }
+              }
+            }
+          },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/jobs/archive": {
+      "get": {
+        "tags": ["Jobs"],
+        "summary": "Search archived jobs (paginated, 20/page)",
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string" } },
+          { "name": "location", "in": "query", "schema": { "type": "string" } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated archived jobs", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PagedArchivedJobs" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/saved-pgs": {
+      "get": {
+        "tags": ["Saved PGs"],
+        "summary": "List saved PGs (summaries, newest first)",
+        "responses": {
+          "200": {
+            "description": "List",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "pgs": { "type": "array", "items": { "$ref": "#/components/schemas/SavedPGSummary" } } } }
+              }
+            }
+          },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Saved PGs"],
+        "summary": "Save a new PG (dedups by fileName + charCount)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pgText"],
+                "properties": { "pgText": { "type": "string" }, "fileName": { "type": "string", "default": "Untitled" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Created or existing PG", "content": { "application/json": { "schema": { "type": "object", "properties": { "pg": { "$ref": "#/components/schemas/SavedPG" } } } } } },
+          "400": { "description": "pgText required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Saved PGs"],
+        "summary": "Delete a saved PG",
+        "parameters": [{ "name": "id", "in": "query", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Success" } } } },
+          "400": { "description": "id required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/saved-pgs/{id}": {
+      "get": {
+        "tags": ["Saved PGs"],
+        "summary": "Get a full saved PG (with text)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "PG", "content": { "application/json": { "schema": { "type": "object", "properties": { "pg": { "$ref": "#/components/schemas/SavedPG" } } } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/records": {
+      "get": {
+        "tags": ["History"],
+        "summary": "List tailored-resume records (paginated, 20/page)",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated records", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PagedRecords" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "post": {
+        "tags": ["History"],
+        "summary": "Save a tailored resume to history",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["jobTitle", "jobDescription", "originalPgText", "tailoredContent"],
+                "properties": {
+                  "cachedJobId": { "type": ["string", "null"] },
+                  "jobTitle": { "type": "string" },
+                  "company": { "type": "string" },
+                  "jobUrl": { "type": "string" },
+                  "jobDescription": { "type": "string" },
+                  "originalPgText": { "type": "string" },
+                  "tailoredContent": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobRecord" } } } },
+          "400": { "description": "Missing required fields", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/records/{id}": {
+      "get": {
+        "tags": ["History"],
+        "summary": "Get a record",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Record", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobRecord" } } } },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "patch": {
+        "tags": ["History"],
+        "summary": "Update status/notes/appliedAt (status='applied' archives the linked job)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "example": "applied" },
+                  "notes": { "type": "string" },
+                  "appliedAt": { "type": ["string", "null"], "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated record", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobRecord" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["History"],
+        "summary": "Delete a record",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Success" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/autopilot/profile": {
+      "get": {
+        "tags": ["Autopilot"],
+        "summary": "Get the current autopilot profile",
+        "responses": {
+          "200": {
+            "description": "Profile (or null)",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "profile": { "oneOf": [{ "$ref": "#/components/schemas/UserProfile" }, { "type": "null" }] } } }
+              }
+            }
+          },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Autopilot"],
+        "summary": "Create or update the autopilot profile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["pgText"],
+                "properties": { "pgText": { "type": "string" }, "name": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Saved profile", "content": { "application/json": { "schema": { "type": "object", "properties": { "profile": { "$ref": "#/components/schemas/UserProfile" } } } } } },
+          "400": { "description": "pgText required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/autopilot/scan": {
+      "post": {
+        "tags": ["Autopilot"],
+        "summary": "Score all cached jobs against the saved profile",
+        "description": "Skips jobs scored in the last 24h. Scores sequentially via Gemini.",
+        "responses": {
+          "200": {
+            "description": "Scan summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "batchId": { "type": "string" },
+                    "scanned": { "type": "integer" },
+                    "matches": { "type": "integer", "description": "score >= 70" },
+                    "errors": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "No profile found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Scan failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/autopilot/results": {
+      "get": {
+        "tags": ["Autopilot"],
+        "summary": "List scan results (sorted by score desc, paginated 20/page)",
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["pending", "skipped", "tailored"] } },
+          { "name": "minScore", "in": "query", "schema": { "type": "integer" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": { "type": "array", "items": { "$ref": "#/components/schemas/JobScan" } },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" },
+                    "totalPages": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/autopilot/results/{id}": {
+      "patch": {
+        "tags": ["Autopilot"],
+        "summary": "Update a scan result's status",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": { "status": { "type": "string", "enum": ["pending", "skipped", "tailored"] } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated scan", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/JobScan" } } } },
+          "400": { "description": "Invalid status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/autopilot/stats": {
+      "get": {
+        "tags": ["Autopilot"],
+        "summary": "Aggregate scan stats",
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalScanned": { "type": "integer" },
+                    "matches": { "type": "integer" },
+                    "pending": { "type": "integer" },
+                    "skipped": { "type": "integer" },
+                    "tailored": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/chats": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "List chat threads (newest first, with last message + job info)",
+        "responses": {
+          "200": { "description": "Chats", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Chat" } } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Get-or-create a chat thread for a job record",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["jobRecordId"], "properties": { "jobRecordId": { "type": "string" } } }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Chat", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Chat" } } } },
+          "400": { "description": "jobRecordId required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/chats/{id}": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Get a chat with its messages and job context",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "Chat with messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Chat" },
+                    { "type": "object", "properties": { "messages": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" } } } }
+                  ]
+                }
+              }
+            }
+          },
+          "404": { "description": "Not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["Chat"],
+        "summary": "Delete a chat thread",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Deleted", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Success" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/chats/{id}/messages": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Send a message and stream the AI reply (SSE)",
+        "description": "Persists the user message, streams the assistant reply as SSE (`data: {\"type\":\"text\"|\"done\"|\"error\"}`), then persists the full assistant message.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["content"], "properties": { "content": { "type": "string" } } }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "SSE stream of assistant reply", "content": { "text/event-stream": { "schema": { "type": "string" } } } },
+          "400": { "description": "Message required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "404": { "description": "Chat not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "500": { "description": "Failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    }
+  }
+}

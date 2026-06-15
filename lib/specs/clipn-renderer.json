@@ -1,0 +1,71 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ClipN HyperFrames renderer",
+    "description": "Sidecar that renders HTML compositions to video (MP4/MOV/WebM) for the ClipN API.",
+    "version": "0.2.0"
+  },
+  "components": { "schemas": {} },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness probe + render capability flag",
+        "tags": ["health"],
+        "responses": { "200": { "description": "Default Response" } }
+      }
+    },
+    "/render": {
+      "post": {
+        "summary": "Render an HTML composition to a video",
+        "tags": ["render"],
+        "description": "Substitutes params into compositions/<slug>/index.html, renders via HyperFrames, and streams back the encoded video. On 200 the response body is the raw binary video stream (MP4/MOV/WebM); the composition, format and duration are echoed in the X-Composition / X-Format / X-Duration-Sec response headers. Errors return JSON: 400 (bad request), 422 (render_failed, with stderr_tail), or 500 (internal).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["composition"],
+                "additionalProperties": false,
+                "properties": {
+                  "composition": {
+                    "type": "string",
+                    "description": "Composition slug: brand-intro, brand-outro, hook-overlay, or caption-track-karaoke."
+                  },
+                  "params": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "{{key}} template substitutions injected into the composition HTML."
+                  },
+                  "durationSec": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 60,
+                    "default": 5,
+                    "description": "Target duration in seconds (0 < n <= 60)."
+                  },
+                  "format": {
+                    "type": "string",
+                    "enum": ["mp4", "webm", "mov"],
+                    "default": "mp4",
+                    "description": "Output container. mp4 is opaque; webm/mov carry an alpha channel."
+                  },
+                  "variables": {
+                    "type": "object",
+                    "additionalProperties": true,
+                    "description": "Structured variables forwarded to HyperFrames via --variables-file."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Default Response" } }
+      }
+    }
+  },
+  "tags": [
+    { "name": "health", "description": "Liveness + capability flag" },
+    { "name": "render", "description": "Composition rendering" }
+  ]
+}
