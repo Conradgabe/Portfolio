@@ -8,6 +8,7 @@
 import clipnSpec from "./specs/clipn.json";
 import clipnRendererSpec from "./specs/clipn-renderer.json";
 import pgTailorSpec from "./specs/pg-tailor.json";
+import quantPlatformSpec from "./specs/quant-platform.json";
 
 export type OpenApiRef = { $ref: string };
 
@@ -63,6 +64,7 @@ export type OpenApiSpec = {
 export const openApiSpecs: Record<string, OpenApiSpec> = {
   clipn: clipnSpec as unknown as OpenApiSpec,
   "pg-tailor": pgTailorSpec as unknown as OpenApiSpec,
+  "quant-platform": quantPlatformSpec as unknown as OpenApiSpec,
 };
 
 /** Secondary "sidecar" specs documented alongside a project's main API. */
@@ -75,6 +77,7 @@ export const rawSpecs: Record<string, OpenApiSpec> = {
   clipn: clipnSpec as unknown as OpenApiSpec,
   "clipn-renderer": clipnRendererSpec as unknown as OpenApiSpec,
   "pg-tailor": pgTailorSpec as unknown as OpenApiSpec,
+  "quant-platform": quantPlatformSpec as unknown as OpenApiSpec,
 };
 
 /** Count total operations (method + path pairs) in a spec. */

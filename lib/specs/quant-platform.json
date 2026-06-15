@@ -1,0 +1,967 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Quantitative Trading Platform", "version": "1.0.0" },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Root endpoint.",
+        "operationId": "root__get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } } }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Health check endpoint.",
+        "operationId": "health_health_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } } }
+      }
+    },
+    "/api/v1/strategies/": {
+      "post": {
+        "tags": ["strategies"],
+        "summary": "Create Strategy",
+        "description": "Create a new strategy.",
+        "operationId": "create_strategy_api_v1_strategies__post",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyCreate" } } } },
+        "responses": {
+          "201": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "get": {
+        "tags": ["strategies"],
+        "summary": "List Strategies",
+        "description": "List all strategies.",
+        "operationId": "list_strategies_api_v1_strategies__get",
+        "parameters": [
+          { "name": "skip", "in": "query", "required": false, "schema": { "type": "integer", "default": 0, "title": "Skip" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "default": 100, "title": "Limit" } },
+          { "name": "active_only", "in": "query", "required": false, "schema": { "type": "boolean", "default": true, "title": "Active Only" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/StrategyResponse" }, "title": "Response List Strategies" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/{strategy_id}": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "Get Strategy",
+        "description": "Get a specific strategy with all versions.",
+        "operationId": "get_strategy_api_v1_strategies__strategy_id__get",
+        "parameters": [{ "name": "strategy_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Strategy Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyWithVersions" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "put": {
+        "tags": ["strategies"],
+        "summary": "Update Strategy",
+        "description": "Update a strategy.",
+        "operationId": "update_strategy_api_v1_strategies__strategy_id__put",
+        "parameters": [{ "name": "strategy_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Strategy Id" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyUpdate" } } } },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["strategies"],
+        "summary": "Delete Strategy",
+        "description": "Delete a strategy (soft delete - mark as inactive).",
+        "operationId": "delete_strategy_api_v1_strategies__strategy_id__delete",
+        "parameters": [{ "name": "strategy_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Strategy Id" } }],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/versions": {
+      "post": {
+        "tags": ["strategies"],
+        "summary": "Create Strategy Version",
+        "description": "Create a new version of a strategy.",
+        "operationId": "create_strategy_version_api_v1_strategies_versions_post",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyVersionCreate" } } } },
+        "responses": {
+          "201": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyVersionResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/versions/{version_id}": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "Get Strategy Version",
+        "description": "Get a specific strategy version with files.",
+        "operationId": "get_strategy_version_api_v1_strategies_versions__version_id__get",
+        "parameters": [{ "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyVersionWithFiles" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/versions/{version_id}/files": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "List Version Files",
+        "description": "List all files in a strategy version (without content for performance).",
+        "operationId": "list_version_files_api_v1_strategies_versions__version_id__files_get",
+        "parameters": [{ "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/StrategyFileListResponse" }, "title": "Response List Version Files" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "post": {
+        "tags": ["strategies"],
+        "summary": "Create Version File",
+        "description": "Create a new file in a strategy version.",
+        "operationId": "create_version_file_api_v1_strategies_versions__version_id__files_post",
+        "parameters": [{ "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyFileCreate" } } } },
+        "responses": {
+          "201": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyFileResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/versions/{version_id}/files/{file_id}": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "Get Version File",
+        "description": "Get a specific file with full content.",
+        "operationId": "get_version_file_api_v1_strategies_versions__version_id__files__file_id__get",
+        "parameters": [
+          { "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } },
+          { "name": "file_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "File Id" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyFileResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "put": {
+        "tags": ["strategies"],
+        "summary": "Update Version File",
+        "description": "Update a file's content in a strategy version.",
+        "operationId": "update_version_file_api_v1_strategies_versions__version_id__files__file_id__put",
+        "parameters": [
+          { "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } },
+          { "name": "file_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "File Id" } }
+        ],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyFileUpdate" } } } },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyFileResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["strategies"],
+        "summary": "Delete Version File",
+        "description": "Delete a file from a strategy version.",
+        "operationId": "delete_version_file_api_v1_strategies_versions__version_id__files__file_id__delete",
+        "parameters": [
+          { "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } },
+          { "name": "file_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "File Id" } }
+        ],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/versions/{version_id}/validate": {
+      "post": {
+        "tags": ["strategies"],
+        "summary": "Validate Strategy Version",
+        "description": "Validate a strategy version's code.\n\nChecks for:\n- Syntax errors\n- Forbidden imports/operations\n- Required interface implementation (BaseStrategy)\n- Security issues",
+        "operationId": "validate_strategy_version_api_v1_strategies_versions__version_id__validate_post",
+        "parameters": [{ "name": "version_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Version Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StrategyValidationResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/strategies/templates": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "List Strategy Templates",
+        "description": "List all available strategy templates.",
+        "operationId": "list_strategy_templates_api_v1_strategies_templates_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } } }
+      }
+    },
+    "/api/v1/strategies/templates/{template_id}": {
+      "get": {
+        "tags": ["strategies"],
+        "summary": "Get Strategy Template",
+        "description": "Get a strategy template by ID.\n\nAvailable templates:\n- \"basic\": Simple single-file template\n- \"advanced\": Multi-file template with indicators\n- \"wyckoff\": Wyckoff method template",
+        "operationId": "get_strategy_template_api_v1_strategies_templates__template_id__get",
+        "parameters": [{ "name": "template_id", "in": "path", "required": true, "schema": { "type": "string", "title": "Template Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/": {
+      "post": {
+        "tags": ["backtests"],
+        "summary": "Create Backtest Run",
+        "description": "Create and enqueue a new backtest run.\nThe backtest will be executed asynchronously by a worker.",
+        "operationId": "create_backtest_run_api_v1_backtests__post",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BacktestRunCreate" } } } },
+        "responses": {
+          "201": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BacktestRunResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "get": {
+        "tags": ["backtests"],
+        "summary": "List Backtest Runs",
+        "description": "List backtest runs with optional filtering.",
+        "operationId": "list_backtest_runs_api_v1_backtests__get",
+        "parameters": [
+          { "name": "skip", "in": "query", "required": false, "schema": { "type": "integer", "default": 0, "title": "Skip" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "default": 100, "title": "Limit" } },
+          { "name": "strategy_version_id", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Strategy Version Id" } },
+          { "name": "status", "in": "query", "required": false, "schema": { "anyOf": [{ "$ref": "#/components/schemas/BacktestStatus" }, { "type": "null" }], "title": "Status" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/BacktestRunResponse" }, "title": "Response List Backtest Runs" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}": {
+      "get": {
+        "tags": ["backtests"],
+        "summary": "Get Backtest Run",
+        "description": "Get a specific backtest run with results and per-asset metrics.",
+        "operationId": "get_backtest_run_api_v1_backtests__backtest_run_id__get",
+        "parameters": [{ "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BacktestRunWithResult" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["backtests"],
+        "summary": "Delete Backtest Run",
+        "description": "Delete a backtest run and all associated data.",
+        "operationId": "delete_backtest_run_api_v1_backtests__backtest_run_id__delete",
+        "parameters": [{ "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } }],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}/result": {
+      "get": {
+        "tags": ["backtests"],
+        "summary": "Get Backtest Result",
+        "description": "Get the result of a backtest run.",
+        "operationId": "get_backtest_result_api_v1_backtests__backtest_run_id__result_get",
+        "parameters": [{ "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/BacktestResultResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}/trades": {
+      "get": {
+        "tags": ["backtests"],
+        "summary": "Get Backtest Trades",
+        "description": "Get all trades from a backtest run.",
+        "operationId": "get_backtest_trades_api_v1_backtests__backtest_run_id__trades_get",
+        "parameters": [
+          { "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } },
+          { "name": "skip", "in": "query", "required": false, "schema": { "type": "integer", "default": 0, "title": "Skip" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "default": 1000, "title": "Limit" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TradeResponse" }, "title": "Response Get Backtest Trades" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}/assets/{asset}": {
+      "get": {
+        "tags": ["backtests"],
+        "summary": "Get Asset Metrics",
+        "description": "Get metrics for a specific asset in a backtest.",
+        "operationId": "get_asset_metrics_api_v1_backtests__backtest_run_id__assets__asset__get",
+        "parameters": [
+          { "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } },
+          { "name": "asset", "in": "path", "required": true, "schema": { "type": "string", "title": "Asset" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AssetMetricsResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}/assets/{asset}/trades": {
+      "get": {
+        "tags": ["backtests"],
+        "summary": "Get Asset Trades",
+        "description": "Get trades for a specific asset in a backtest.",
+        "operationId": "get_asset_trades_api_v1_backtests__backtest_run_id__assets__asset__trades_get",
+        "parameters": [
+          { "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } },
+          { "name": "asset", "in": "path", "required": true, "schema": { "type": "string", "title": "Asset" } },
+          { "name": "skip", "in": "query", "required": false, "schema": { "type": "integer", "default": 0, "title": "Skip" } },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "default": 1000, "title": "Limit" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/TradeResponse" }, "title": "Response Get Asset Trades" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/backtests/{backtest_run_id}/execute-websocket": {
+      "post": {
+        "tags": ["backtests"],
+        "summary": "Execute Backtest Via Websocket",
+        "description": "Trigger WebSocket-based execution for a backtest run.\nUsed when custom CLI arguments are provided.",
+        "operationId": "execute_backtest_via_websocket_api_v1_backtests__backtest_run_id__execute_websocket_post",
+        "parameters": [{ "name": "backtest_run_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Backtest Run Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/market-data/summary": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "Get Data Summary",
+        "description": "Get summary of all available market data.",
+        "operationId": "get_data_summary_api_v1_market_data_summary_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AvailableDataSummary" } } } } }
+      }
+    },
+    "/api/v1/market-data/datasets": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "List Datasets",
+        "description": "List all available market datasets.\n\nOptionally filter by symbol and/or timeframe.",
+        "operationId": "list_datasets_api_v1_market_data_datasets_get",
+        "parameters": [
+          { "name": "symbol", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Symbol" } },
+          { "name": "timeframe", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Timeframe" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/MarketDatasetResponse" }, "title": "Response List Datasets" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/market-data/symbols": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "List Symbols",
+        "description": "Get list of all available currency pair symbols.",
+        "operationId": "list_symbols_api_v1_market_data_symbols_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "items": { "type": "string" }, "type": "array", "title": "Response List Symbols" } } } } }
+      }
+    },
+    "/api/v1/market-data/timeframes": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "List Timeframes",
+        "description": "Get list of available timeframes.\n\nOptionally filter by symbol.",
+        "operationId": "list_timeframes_api_v1_market_data_timeframes_get",
+        "parameters": [{ "name": "symbol", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Symbol" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "type": "array", "items": { "type": "string" }, "title": "Response List Timeframes" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/market-data/data": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "Get Market Data",
+        "description": "Get market data for a specific symbol and timeframe.\n\nReturns OHLCV candlestick data.",
+        "operationId": "get_market_data_api_v1_market_data_data_get",
+        "parameters": [
+          { "name": "symbol", "in": "query", "required": true, "schema": { "type": "string", "description": "Currency pair (e.g., EURUSD)", "title": "Symbol" }, "description": "Currency pair (e.g., EURUSD)" },
+          { "name": "timeframe", "in": "query", "required": true, "schema": { "type": "string", "description": "Timeframe (e.g., 15M, 1H, 1D)", "title": "Timeframe" }, "description": "Timeframe (e.g., 15M, 1H, 1D)" },
+          { "name": "start_date", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "description": "Start date (ISO format)", "title": "Start Date" }, "description": "Start date (ISO format)" },
+          { "name": "end_date", "in": "query", "required": false, "schema": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "description": "End date (ISO format)", "title": "End Date" }, "description": "End date (ISO format)" },
+          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "maximum": 50000, "minimum": 1, "description": "Max rows to return", "default": 1000, "title": "Limit" }, "description": "Max rows to return" }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarketDataResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/market-data/dataset/{symbol}/{timeframe}": {
+      "get": {
+        "tags": ["market-data"],
+        "summary": "Get Dataset Info",
+        "description": "Get information about a specific dataset.",
+        "operationId": "get_dataset_info_api_v1_market_data_dataset__symbol___timeframe__get",
+        "parameters": [
+          { "name": "symbol", "in": "path", "required": true, "schema": { "type": "string", "title": "Symbol" } },
+          { "name": "timeframe", "in": "path", "required": true, "schema": { "type": "string", "title": "Timeframe" } }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MarketDatasetResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Get Current User",
+        "description": "Get current authenticated user.\nNOTE: Authentication not implemented in v1. Placeholder endpoint.",
+        "operationId": "get_current_user_api_v1_users_me_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": {} } } } }
+      }
+    },
+    "/api/v1/portfolios": {
+      "get": {
+        "tags": ["portfolios"],
+        "summary": "List Portfolios",
+        "description": "Get all portfolios for the user.\n\nReturns portfolios ordered by default first, then by creation date (newest first).",
+        "operationId": "list_portfolios_api_v1_portfolios_get",
+        "responses": { "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "items": { "$ref": "#/components/schemas/PortfolioResponse" }, "type": "array", "title": "Response List Portfolios" } } } } }
+      },
+      "post": {
+        "tags": ["portfolios"],
+        "summary": "Create Portfolio",
+        "description": "Create a new portfolio.\n\nIf this is the user's first portfolio, it will automatically be set as default.",
+        "operationId": "create_portfolio_api_v1_portfolios_post",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioCreate" } } } },
+        "responses": {
+          "201": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolio_id}": {
+      "get": {
+        "tags": ["portfolios"],
+        "summary": "Get Portfolio",
+        "description": "Get portfolio by ID.",
+        "operationId": "get_portfolio_api_v1_portfolios__portfolio_id__get",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "put": {
+        "tags": ["portfolios"],
+        "summary": "Update Portfolio",
+        "description": "Update portfolio details (name and description).\n\nBalance cannot be updated through this endpoint. Use deposit/withdraw endpoints instead.",
+        "operationId": "update_portfolio_api_v1_portfolios__portfolio_id__put",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioUpdate" } } } },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      },
+      "delete": {
+        "tags": ["portfolios"],
+        "summary": "Delete Portfolio",
+        "description": "Delete portfolio (soft delete - marks as inactive).\n\nCannot delete the default portfolio. Set another portfolio as default first.",
+        "operationId": "delete_portfolio_api_v1_portfolios__portfolio_id__delete",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "responses": {
+          "204": { "description": "Successful Response" },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolio_id}/deposit": {
+      "post": {
+        "tags": ["portfolios"],
+        "summary": "Deposit Funds",
+        "description": "Deposit funds to portfolio.\n\nAmount must be positive.",
+        "operationId": "deposit_funds_api_v1_portfolios__portfolio_id__deposit_post",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioTransaction" } } } },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolio_id}/withdraw": {
+      "post": {
+        "tags": ["portfolios"],
+        "summary": "Withdraw Funds",
+        "description": "Withdraw funds from portfolio.\n\nAmount must be positive and cannot exceed current balance.",
+        "operationId": "withdraw_funds_api_v1_portfolios__portfolio_id__withdraw_post",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioTransaction" } } } },
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    },
+    "/api/v1/portfolios/{portfolio_id}/set-default": {
+      "put": {
+        "tags": ["portfolios"],
+        "summary": "Set Default Portfolio",
+        "description": "Set portfolio as default.\n\nThis will unset any existing default portfolio for the user.",
+        "operationId": "set_default_portfolio_api_v1_portfolios__portfolio_id__set_default_put",
+        "parameters": [{ "name": "portfolio_id", "in": "path", "required": true, "schema": { "type": "integer", "title": "Portfolio Id" } }],
+        "responses": {
+          "200": { "description": "Successful Response", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PortfolioResponse" } } } },
+          "422": { "description": "Validation Error", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HTTPValidationError" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssetMetricsResponse": {
+        "type": "object",
+        "description": "Schema for per-asset metrics.",
+        "required": ["id", "backtest_run_id", "asset", "total_return", "max_drawdown", "total_trades", "winning_trades", "losing_trades", "win_rate", "total_pnl", "average_pnl", "equity_curve", "drawdown_curve", "created_at"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "backtest_run_id": { "type": "integer", "title": "Backtest Run Id" },
+          "asset": { "type": "string", "title": "Asset" },
+          "total_return": { "type": "string", "title": "Total Return" },
+          "max_drawdown": { "type": "string", "title": "Max Drawdown" },
+          "total_trades": { "type": "integer", "title": "Total Trades" },
+          "winning_trades": { "type": "integer", "title": "Winning Trades" },
+          "losing_trades": { "type": "integer", "title": "Losing Trades" },
+          "win_rate": { "type": "string", "title": "Win Rate" },
+          "total_pnl": { "type": "string", "title": "Total Pnl" },
+          "average_pnl": { "type": "string", "title": "Average Pnl" },
+          "equity_curve": { "items": { "type": "object" }, "type": "array", "title": "Equity Curve" },
+          "drawdown_curve": { "items": { "type": "object" }, "type": "array", "title": "Drawdown Curve" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        }
+      },
+      "AvailableDataSummary": {
+        "type": "object",
+        "description": "Summary of available market data.",
+        "required": ["total_datasets", "total_size_mb", "available_symbols", "available_timeframes", "date_range", "datasets"],
+        "properties": {
+          "total_datasets": { "type": "integer", "title": "Total Datasets" },
+          "total_size_mb": { "type": "number", "title": "Total Size Mb" },
+          "available_symbols": { "items": { "type": "string" }, "type": "array", "title": "Available Symbols" },
+          "available_timeframes": { "items": { "type": "string" }, "type": "array", "title": "Available Timeframes" },
+          "date_range": { "type": "object", "title": "Date Range" },
+          "datasets": { "items": { "$ref": "#/components/schemas/MarketDatasetResponse" }, "type": "array", "title": "Datasets" }
+        }
+      },
+      "BacktestResultResponse": {
+        "type": "object",
+        "description": "Schema for backtest result response.",
+        "required": ["id", "backtest_run_id", "total_return", "cagr", "sharpe_ratio", "sortino_ratio", "max_drawdown", "total_trades", "win_rate", "initial_capital", "final_capital", "equity_curve", "drawdown_curve", "created_at"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "backtest_run_id": { "type": "integer", "title": "Backtest Run Id" },
+          "total_return": { "type": "string", "title": "Total Return" },
+          "cagr": { "type": "string", "title": "Cagr" },
+          "sharpe_ratio": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Sharpe Ratio" },
+          "sortino_ratio": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Sortino Ratio" },
+          "max_drawdown": { "type": "string", "title": "Max Drawdown" },
+          "max_drawdown_duration_days": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Max Drawdown Duration Days" },
+          "total_trades": { "type": "integer", "title": "Total Trades" },
+          "winning_trades": { "type": "integer", "title": "Winning Trades" },
+          "losing_trades": { "type": "integer", "title": "Losing Trades" },
+          "win_rate": { "type": "string", "title": "Win Rate" },
+          "profit_factor": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Profit Factor" },
+          "average_trade": { "type": "string", "title": "Average Trade" },
+          "volatility": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Volatility" },
+          "var_95": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Var 95" },
+          "cvar_95": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Cvar 95" },
+          "expectancy": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Expectancy" },
+          "recovery_factor": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Recovery Factor" },
+          "initial_capital": { "type": "string", "title": "Initial Capital" },
+          "final_capital": { "type": "string", "title": "Final Capital" },
+          "equity_curve": { "items": { "type": "object" }, "type": "array", "title": "Equity Curve" },
+          "drawdown_curve": { "items": { "type": "object" }, "type": "array", "title": "Drawdown Curve" },
+          "monthly_returns": { "anyOf": [{ "items": { "type": "object" }, "type": "array" }, { "type": "null" }], "title": "Monthly Returns" },
+          "performance_by_condition": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Performance By Condition" },
+          "risk_of_ruin": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Risk Of Ruin" },
+          "confidence_score": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Confidence Score" },
+          "confidence_breakdown": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Confidence Breakdown" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" }
+        }
+      },
+      "BacktestRunCreate": {
+        "type": "object",
+        "description": "Schema for creating a backtest run.",
+        "required": ["strategy_version_id", "assets", "timeframes", "start_date", "end_date"],
+        "properties": {
+          "strategy_version_id": { "type": "integer", "title": "Strategy Version Id" },
+          "assets": { "items": { "type": "string" }, "type": "array", "minItems": 1, "title": "Assets" },
+          "timeframes": { "items": { "type": "string" }, "type": "array", "minItems": 1, "title": "Timeframes" },
+          "start_date": { "type": "string", "format": "date-time", "title": "Start Date" },
+          "end_date": { "type": "string", "format": "date-time", "title": "End Date" },
+          "parameters": { "type": "object", "title": "Parameters" },
+          "execution_config": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Execution Config" },
+          "dataset_version_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Dataset Version Id" }
+        }
+      },
+      "BacktestRunResponse": {
+        "type": "object",
+        "description": "Schema for backtest run response.",
+        "required": ["id", "strategy_version_id", "assets", "timeframes", "start_date", "end_date", "parameters", "dataset_version_id", "status", "engine_version", "created_at", "started_at", "completed_at", "created_by", "error_message", "logs", "job_id"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_version_id": { "type": "integer", "title": "Strategy Version Id" },
+          "assets": { "items": { "type": "string" }, "type": "array", "title": "Assets" },
+          "timeframes": { "items": { "type": "string" }, "type": "array", "title": "Timeframes" },
+          "start_date": { "type": "string", "format": "date-time", "title": "Start Date" },
+          "end_date": { "type": "string", "format": "date-time", "title": "End Date" },
+          "parameters": { "type": "object", "title": "Parameters" },
+          "dataset_version_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Dataset Version Id" },
+          "status": { "$ref": "#/components/schemas/BacktestStatus" },
+          "engine_version": { "type": "string", "title": "Engine Version" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "started_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Started At" },
+          "completed_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Completed At" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" },
+          "error_message": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Error Message" },
+          "logs": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Logs" },
+          "job_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Job Id" }
+        }
+      },
+      "BacktestRunWithResult": {
+        "type": "object",
+        "description": "Schema for backtest run with result and per-asset metrics.",
+        "required": ["id", "strategy_version_id", "assets", "timeframes", "start_date", "end_date", "parameters", "dataset_version_id", "status", "engine_version", "created_at", "started_at", "completed_at", "created_by", "error_message", "logs", "job_id"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_version_id": { "type": "integer", "title": "Strategy Version Id" },
+          "assets": { "items": { "type": "string" }, "type": "array", "title": "Assets" },
+          "timeframes": { "items": { "type": "string" }, "type": "array", "title": "Timeframes" },
+          "start_date": { "type": "string", "format": "date-time", "title": "Start Date" },
+          "end_date": { "type": "string", "format": "date-time", "title": "End Date" },
+          "parameters": { "type": "object", "title": "Parameters" },
+          "dataset_version_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Dataset Version Id" },
+          "status": { "$ref": "#/components/schemas/BacktestStatus" },
+          "engine_version": { "type": "string", "title": "Engine Version" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "started_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Started At" },
+          "completed_at": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Completed At" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" },
+          "error_message": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Error Message" },
+          "logs": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Logs" },
+          "job_id": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Job Id" },
+          "result": { "anyOf": [{ "$ref": "#/components/schemas/BacktestResultResponse" }, { "type": "null" }] },
+          "asset_metrics": { "items": { "$ref": "#/components/schemas/AssetMetricsResponse" }, "type": "array", "title": "Asset Metrics", "default": [] }
+        }
+      },
+      "BacktestStatus": { "type": "string", "enum": ["pending", "running", "completed", "failed", "cancelled"], "title": "BacktestStatus", "description": "Backtest execution status." },
+      "CandleData": {
+        "type": "object",
+        "description": "Single candlestick/bar data.",
+        "required": ["timestamp", "open", "high", "low", "close", "volume"],
+        "properties": {
+          "timestamp": { "type": "string", "format": "date-time", "title": "Timestamp" },
+          "open": { "type": "number", "title": "Open" },
+          "high": { "type": "number", "title": "High" },
+          "low": { "type": "number", "title": "Low" },
+          "close": { "type": "number", "title": "Close" },
+          "volume": { "type": "integer", "title": "Volume" }
+        }
+      },
+      "HTTPValidationError": {
+        "type": "object",
+        "title": "HTTPValidationError",
+        "properties": { "detail": { "items": { "$ref": "#/components/schemas/ValidationError" }, "type": "array", "title": "Detail" } }
+      },
+      "MarketDataResponse": {
+        "type": "object",
+        "description": "Response containing market data.",
+        "required": ["symbol", "timeframe", "data", "count", "start_date", "end_date"],
+        "properties": {
+          "symbol": { "type": "string", "title": "Symbol" },
+          "timeframe": { "type": "string", "title": "Timeframe" },
+          "data": { "items": { "$ref": "#/components/schemas/CandleData" }, "type": "array", "title": "Data" },
+          "count": { "type": "integer", "title": "Count" },
+          "start_date": { "type": "string", "format": "date-time", "title": "Start Date" },
+          "end_date": { "type": "string", "format": "date-time", "title": "End Date" }
+        }
+      },
+      "MarketDatasetResponse": {
+        "type": "object",
+        "description": "Schema for market dataset response.",
+        "required": ["symbol", "timeframe", "id", "file_path", "file_format", "start_date", "end_date", "row_count", "file_size_bytes", "is_sample", "created_at", "updated_at", "is_active"],
+        "properties": {
+          "symbol": { "type": "string", "title": "Symbol", "description": "Currency pair symbol (e.g., EURUSD)" },
+          "timeframe": { "type": "string", "title": "Timeframe", "description": "Timeframe (e.g., 15M, 1H, 1D)" },
+          "asset_class": { "type": "string", "title": "Asset Class", "description": "Asset class", "default": "forex" },
+          "id": { "type": "integer", "title": "Id" },
+          "file_path": { "type": "string", "title": "File Path" },
+          "file_format": { "type": "string", "title": "File Format" },
+          "start_date": { "type": "string", "format": "date-time", "title": "Start Date" },
+          "end_date": { "type": "string", "format": "date-time", "title": "End Date" },
+          "row_count": { "type": "integer", "title": "Row Count" },
+          "file_size_bytes": { "type": "integer", "title": "File Size Bytes" },
+          "data_quality": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Data Quality" },
+          "is_sample": { "type": "boolean", "title": "Is Sample" },
+          "source": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Source" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" },
+          "is_active": { "type": "boolean", "title": "Is Active" }
+        }
+      },
+      "PortfolioCreate": {
+        "type": "object",
+        "description": "Schema for creating a portfolio.",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 100, "minLength": 1, "title": "Name", "description": "Portfolio name" },
+          "description": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Description", "description": "Portfolio description" },
+          "currency": { "type": "string", "maxLength": 3, "title": "Currency", "description": "Portfolio currency code", "default": "USD" },
+          "initial_balance": { "type": "number", "minimum": 0, "title": "Initial Balance", "description": "Initial portfolio balance", "default": 100000 }
+        }
+      },
+      "PortfolioResponse": {
+        "type": "object",
+        "description": "Schema for portfolio response.",
+        "required": ["name", "id", "user_id", "balance", "is_default", "is_active", "created_at", "updated_at"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 100, "minLength": 1, "title": "Name", "description": "Portfolio name" },
+          "description": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Description", "description": "Portfolio description" },
+          "currency": { "type": "string", "maxLength": 3, "title": "Currency", "description": "Portfolio currency code", "default": "USD" },
+          "id": { "type": "integer", "title": "Id" },
+          "user_id": { "type": "integer", "title": "User Id" },
+          "balance": { "type": "number", "title": "Balance" },
+          "is_default": { "type": "boolean", "title": "Is Default" },
+          "is_active": { "type": "boolean", "title": "Is Active" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        }
+      },
+      "PortfolioTransaction": {
+        "type": "object",
+        "description": "Schema for portfolio transactions (deposit/withdraw).",
+        "required": ["amount"],
+        "properties": {
+          "amount": { "type": "number", "exclusiveMinimum": 0, "title": "Amount", "description": "Transaction amount (must be positive)" },
+          "note": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Note", "description": "Optional transaction note" }
+        }
+      },
+      "PortfolioUpdate": {
+        "type": "object",
+        "description": "Schema for updating a portfolio.",
+        "properties": {
+          "name": { "anyOf": [{ "type": "string", "maxLength": 100, "minLength": 1 }, { "type": "null" }], "title": "Name", "description": "Portfolio name" },
+          "description": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Description", "description": "Portfolio description" }
+        }
+      },
+      "StrategyCreate": {
+        "type": "object",
+        "description": "Schema for creating a strategy.",
+        "required": ["name", "asset_classes"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255, "minLength": 1, "title": "Name" },
+          "description": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Description" },
+          "asset_classes": { "items": { "type": "string" }, "type": "array", "minItems": 1, "title": "Asset Classes" }
+        }
+      },
+      "StrategyFileCreate": {
+        "type": "object",
+        "description": "Schema for creating a strategy file.",
+        "required": ["file_path", "content"],
+        "properties": {
+          "file_path": { "type": "string", "maxLength": 500, "minLength": 1, "title": "File Path", "description": "Relative path to file (e.g., 'strategy.py', 'indicators/sma.py')" },
+          "content": { "type": "string", "title": "Content", "description": "File content" },
+          "file_type": { "type": "string", "maxLength": 50, "title": "File Type", "description": "File type: python, json, yaml, text, markdown", "default": "python" }
+        }
+      },
+      "StrategyFileListResponse": {
+        "type": "object",
+        "description": "Schema for listing strategy files (without content for performance).",
+        "required": ["id", "strategy_version_id", "file_path", "file_type", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_version_id": { "type": "integer", "title": "Strategy Version Id" },
+          "file_path": { "type": "string", "title": "File Path" },
+          "file_type": { "type": "string", "title": "File Type" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        }
+      },
+      "StrategyFileResponse": {
+        "type": "object",
+        "description": "Schema for strategy file response.",
+        "required": ["file_path", "content", "id", "strategy_version_id", "created_at", "updated_at"],
+        "properties": {
+          "file_path": { "type": "string", "maxLength": 500, "minLength": 1, "title": "File Path", "description": "Relative path to file (e.g., 'strategy.py', 'indicators/sma.py')" },
+          "content": { "type": "string", "title": "Content", "description": "File content" },
+          "file_type": { "type": "string", "maxLength": 50, "title": "File Type", "description": "File type: python, json, yaml, text, markdown", "default": "python" },
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_version_id": { "type": "integer", "title": "Strategy Version Id" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" }
+        }
+      },
+      "StrategyFileUpdate": {
+        "type": "object",
+        "description": "Schema for updating a strategy file.",
+        "required": ["content"],
+        "properties": {
+          "content": { "type": "string", "minLength": 1, "title": "Content", "description": "Updated file content" },
+          "file_type": { "anyOf": [{ "type": "string", "maxLength": 50 }, { "type": "null" }], "title": "File Type" }
+        }
+      },
+      "StrategyResponse": {
+        "type": "object",
+        "description": "Schema for strategy response.",
+        "required": ["name", "asset_classes", "id", "created_at", "updated_at", "is_active"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255, "minLength": 1, "title": "Name" },
+          "description": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Description" },
+          "asset_classes": { "items": { "type": "string" }, "type": "array", "minItems": 1, "title": "Asset Classes" },
+          "id": { "type": "integer", "title": "Id" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" },
+          "is_active": { "type": "boolean", "title": "Is Active" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" }
+        }
+      },
+      "StrategyUpdate": {
+        "type": "object",
+        "description": "Schema for updating a strategy.",
+        "properties": {
+          "name": { "anyOf": [{ "type": "string", "maxLength": 255, "minLength": 1 }, { "type": "null" }], "title": "Name" },
+          "description": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Description" },
+          "asset_classes": { "anyOf": [{ "items": { "type": "string" }, "type": "array", "minItems": 1 }, { "type": "null" }], "title": "Asset Classes" },
+          "is_active": { "anyOf": [{ "type": "boolean" }, { "type": "null" }], "title": "Is Active" }
+        }
+      },
+      "StrategyValidationResponse": {
+        "type": "object",
+        "description": "Schema for strategy validation response.",
+        "required": ["valid"],
+        "properties": {
+          "valid": { "type": "boolean", "title": "Valid" },
+          "errors": { "items": { "$ref": "#/components/schemas/ValidationError" }, "type": "array", "title": "Errors", "default": [] },
+          "warnings": { "items": { "$ref": "#/components/schemas/ValidationError" }, "type": "array", "title": "Warnings", "default": [] }
+        }
+      },
+      "StrategyVersionCreate": {
+        "type": "object",
+        "description": "Schema for creating a strategy version.",
+        "required": ["version", "strategy_id"],
+        "properties": {
+          "version": { "type": "string", "maxLength": 50, "minLength": 1, "title": "Version" },
+          "code": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Code", "description": "Legacy single-file code (deprecated, use files instead)" },
+          "change_notes": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Change Notes" },
+          "parameters_schema": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Parameters Schema" },
+          "entry_point": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Entry Point", "description": "Main entry file for multi-file strategies", "default": "strategy.py" },
+          "strategy_id": { "type": "integer", "title": "Strategy Id" },
+          "files": { "anyOf": [{ "items": { "$ref": "#/components/schemas/StrategyFileCreate" }, "type": "array" }, { "type": "null" }], "title": "Files", "description": "Files for multi-file strategies" }
+        }
+      },
+      "StrategyVersionResponse": {
+        "type": "object",
+        "description": "Schema for strategy version response.",
+        "required": ["version", "id", "strategy_id", "version_hash", "created_at", "is_locked", "backtest_count"],
+        "properties": {
+          "version": { "type": "string", "maxLength": 50, "minLength": 1, "title": "Version" },
+          "code": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Code", "description": "Legacy single-file code (deprecated, use files instead)" },
+          "change_notes": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Change Notes" },
+          "parameters_schema": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Parameters Schema" },
+          "entry_point": { "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }], "title": "Entry Point", "description": "Main entry file for multi-file strategies", "default": "strategy.py" },
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_id": { "type": "integer", "title": "Strategy Id" },
+          "version_hash": { "type": "string", "title": "Version Hash" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" },
+          "is_locked": { "type": "boolean", "title": "Is Locked" },
+          "backtest_count": { "type": "integer", "title": "Backtest Count" }
+        }
+      },
+      "StrategyVersionWithFiles": {
+        "type": "object",
+        "description": "Schema for strategy version with files.",
+        "required": ["version", "id", "strategy_id", "version_hash", "created_at", "is_locked", "backtest_count"],
+        "properties": {
+          "version": { "type": "string", "maxLength": 50, "minLength": 1, "title": "Version" },
+          "code": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Code", "description": "Legacy single-file code (deprecated, use files instead)" },
+          "change_notes": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Change Notes" },
+          "parameters_schema": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Parameters Schema" },
+          "entry_point": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Entry Point" },
+          "id": { "type": "integer", "title": "Id" },
+          "strategy_id": { "type": "integer", "title": "Strategy Id" },
+          "version_hash": { "type": "string", "title": "Version Hash" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" },
+          "is_locked": { "type": "boolean", "title": "Is Locked" },
+          "backtest_count": { "type": "integer", "title": "Backtest Count" },
+          "files": { "items": { "$ref": "#/components/schemas/StrategyFileListResponse" }, "type": "array", "title": "Files", "default": [] },
+          "is_legacy": { "type": "boolean", "title": "Is Legacy", "default": false }
+        }
+      },
+      "StrategyWithVersions": {
+        "type": "object",
+        "description": "Schema for strategy with versions.",
+        "required": ["name", "asset_classes", "id", "created_at", "updated_at", "is_active"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255, "minLength": 1, "title": "Name" },
+          "description": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Description" },
+          "asset_classes": { "items": { "type": "string" }, "type": "array", "minItems": 1, "title": "Asset Classes" },
+          "id": { "type": "integer", "title": "Id" },
+          "created_at": { "type": "string", "format": "date-time", "title": "Created At" },
+          "updated_at": { "type": "string", "format": "date-time", "title": "Updated At" },
+          "is_active": { "type": "boolean", "title": "Is Active" },
+          "created_by": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Created By" },
+          "versions": { "items": { "$ref": "#/components/schemas/StrategyVersionResponse" }, "type": "array", "title": "Versions", "default": [] }
+        }
+      },
+      "TradeResponse": {
+        "type": "object",
+        "description": "Schema for trade response.",
+        "required": ["id", "backtest_run_id", "asset", "side", "entry_time", "exit_time", "entry_price", "exit_price", "quantity", "pnl", "pnl_percent", "commission", "slippage", "duration_minutes", "tags"],
+        "properties": {
+          "id": { "type": "integer", "title": "Id" },
+          "backtest_run_id": { "type": "integer", "title": "Backtest Run Id" },
+          "asset": { "type": "string", "title": "Asset" },
+          "side": { "type": "string", "title": "Side" },
+          "entry_time": { "type": "string", "format": "date-time", "title": "Entry Time" },
+          "exit_time": { "anyOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }], "title": "Exit Time" },
+          "entry_price": { "type": "string", "title": "Entry Price" },
+          "exit_price": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Exit Price" },
+          "quantity": { "type": "string", "title": "Quantity" },
+          "pnl": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Pnl" },
+          "pnl_percent": { "anyOf": [{ "type": "string" }, { "type": "null" }], "title": "Pnl Percent" },
+          "commission": { "type": "string", "title": "Commission" },
+          "slippage": { "type": "string", "title": "Slippage" },
+          "duration_minutes": { "anyOf": [{ "type": "integer" }, { "type": "null" }], "title": "Duration Minutes" },
+          "tags": { "anyOf": [{ "type": "object" }, { "type": "null" }], "title": "Tags" }
+        }
+      },
+      "ValidationError": {
+        "type": "object",
+        "title": "ValidationError",
+        "required": ["loc", "msg", "type"],
+        "properties": {
+          "loc": { "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] }, "type": "array", "title": "Location" },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        }
+      }
+    }
+  }
+}

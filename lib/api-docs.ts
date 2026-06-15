@@ -349,13 +349,69 @@ curl -N "$API/api/v1/videos/$VIDEO/clips/stream?token=$TOKEN"`,
 
   "quant-platform": {
     slug: "quant-platform",
-    kind: "pending",
+    kind: "rest",
     protocol: "REST · OpenAPI 3.1 · FastAPI",
-    auth: "JWT · Bearer",
+    endpoint: "/api/v1",
+    auth: "none declared (v1)",
     intro:
-      "Algome's backend is a FastAPI service covering strategy upload, event-driven backtest runs, and immutable, auditable results — fully described by an OpenAPI 3.1 schema.",
-    groups: [],
-    pending: { note: "Private deployment — full OpenAPI reference available on request." },
+      "Algome runs systematic backtesting end-to-end: define a multi-file strategy, version and sandbox-validate its code, then enqueue worker-executed backtests over survivorship-bias-aware Forex data. Results come back with institutional metrics (Sharpe, Sortino, CAGR, drawdown, profit factor, VaR/CVaR, a confidence score), per-asset breakdowns, full trade logs, and paper portfolios.",
+    note: "Code-first strategies are validated in a sandbox (syntax, forbidden imports, required BaseStrategy interface, security) before runs execute asynchronously on workers. v1 ships without an auth layer.",
+    groups: [
+      {
+        title: "Strategies & validation",
+        operations: [
+          { tag: "POST", name: "/api/v1/strategies", summary: "Create a strategy across one or more asset classes." },
+          { tag: "POST", name: "/api/v1/strategies/versions", summary: "New immutable, content-hashed version (multi-file)." },
+          { tag: "POST", name: "/api/v1/strategies/versions/{id}/validate", summary: "Sandbox-validate: syntax, forbidden imports, BaseStrategy interface, security." },
+          { tag: "GET", name: "/api/v1/strategies/templates/{id}", summary: "Starter templates: basic, advanced, wyckoff." },
+        ],
+      },
+      {
+        title: "Backtesting engine",
+        operations: [
+          { tag: "POST", name: "/api/v1/backtests", summary: "Enqueue an async, worker-executed backtest run." },
+          { tag: "GET", name: "/api/v1/backtests/{id}/result", summary: "Sharpe, Sortino, CAGR, drawdown, profit factor, VaR/CVaR, confidence score." },
+          { tag: "GET", name: "/api/v1/backtests/{id}/assets/{asset}", summary: "Per-asset metrics with equity + drawdown curves." },
+          { tag: "GET", name: "/api/v1/backtests/{id}/trades", summary: "Every executed trade, paginated." },
+        ],
+      },
+      {
+        title: "Market data & portfolios",
+        operations: [
+          { tag: "GET", name: "/api/v1/market-data/data", summary: "OHLCV candles by symbol, timeframe, and date range." },
+          { tag: "GET", name: "/api/v1/market-data/summary", summary: "Datasets, symbols, timeframes, and coverage." },
+          { tag: "POST", name: "/api/v1/portfolios", summary: "Create a paper portfolio (default 100k balance)." },
+          { tag: "POST", name: "/api/v1/portfolios/{id}/deposit", summary: "Deposit / withdraw paper funds." },
+        ],
+      },
+    ],
+    examples: [
+      {
+        label: "enqueue a backtest run",
+        lang: "bash",
+        code: `curl -X POST $API/api/v1/backtests \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+    "strategy_version_id": 12,
+    "assets": ["EURUSD", "GBPUSD"],
+    "timeframes": ["1H"],
+    "start_date": "2020-01-01T00:00:00Z",
+    "end_date": "2024-01-01T00:00:00Z"
+  }'`,
+        responseLang: "json",
+        response: `// 201 Created — executed asynchronously by a worker
+{
+  "id": 87,
+  "strategy_version_id": 12,
+  "status": "pending",
+  "engine_version": "1.0.0",
+  "assets": ["EURUSD", "GBPUSD"],
+  "job_id": "rq:job:…",
+  "created_at": "2026-06-15T12:00:00Z"
+}`,
+      },
+    ],
+    spec: { type: "page", href: "/projects/quant-platform/api", label: "view full OpenAPI spec" },
   },
 
   "pg-tailor": {
