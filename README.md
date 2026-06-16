@@ -53,12 +53,6 @@ node scripts/shoot.mjs    # screenshots → .screenshots/ (set BASE_URL to targe
 node scripts/a11y.mjs     # axe-core accessibility audit across key pages
 ```
 
-## TODO (handoff)
-
-- [ ] **Contact form**: set `NEXT_PUBLIC_WEB3FORMS_KEY` (free key from web3forms.com); without it the form falls back to a `mailto:` link
-- [ ] **Domain** (optional): add a custom domain on Vercel and update `metadataBase` in `app/layout.tsx`
-- [ ] **Tagline** (optional): three options live in `lib/site.ts` (`taglines`); the first is the default in the hero
-
 ## Deploy (Vercel)
 
 ```bash
