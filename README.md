@@ -34,21 +34,3 @@ npm run dev      # dev server → http://localhost:3000
 npm run build    # production build
 npm run start    # serve the production build
 ```
-
-## Where content lives
-
-- **`lib/site.ts`** — identity, taglines, socials, focus areas, skills, **projects** (case studies), command map
-- **`lib/resume.ts`** — résumé summary + `experience` / `education` / `certifications`
-- **`lib/api-docs.ts`** — per-project API reference content (terminal summary, GraphQL SDL/examples)
-- **`lib/specs.ts`** + **`lib/specs/*.json`** — real OpenAPI specs, typed and rendered by the full-spec viewer
-- **`lib/medium.ts`** — live Medium feed (`@conradgabe`)
-- **`lib/github.ts`** — tokenless public GitHub contributions + languages
-- **Routes:** case studies at `/projects/<slug>`, full API reference at `/projects/<slug>/api`, raw spec download at `/api-specs/<slug>`, résumé at `/resume` (print-to-PDF)
-- **API rendering:** `components/sections/ApiReference.tsx` (terminal summary) and `components/sections/OpenApiView.tsx` (interactive full spec)
-
-## Visual + a11y tooling (dev only)
-
-```bash
-node scripts/shoot.mjs    # screenshots → .screenshots/ (set BASE_URL to target a server)
-node scripts/a11y.mjs     # axe-core accessibility audit across key pages
-```
