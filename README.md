@@ -52,12 +52,3 @@ npm run start    # serve the production build
 node scripts/shoot.mjs    # screenshots → .screenshots/ (set BASE_URL to target a server)
 node scripts/a11y.mjs     # axe-core accessibility audit across key pages
 ```
-
-## Deploy (Vercel)
-
-```bash
-npx vercel          # first run prompts login + project setup
-npx vercel --prod   # promote to production
-```
-
-Add `NEXT_PUBLIC_WEB3FORMS_KEY` under the project's Environment Variables for the contact form.
