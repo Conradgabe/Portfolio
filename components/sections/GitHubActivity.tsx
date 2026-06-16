@@ -5,7 +5,9 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { cn } from "@/lib/utils";
 
-const LEVELS = ["bg-line", "bg-accent/30", "bg-accent/50", "bg-accent/75", "bg-accent"];
+// accent-ink is theme-aware: #c1cfcf in dark (unchanged look) and a dark sage
+// (#38494a) in light, so the ramp stays legible on a white background.
+const LEVELS = ["bg-line", "bg-accent-ink/30", "bg-accent-ink/50", "bg-accent-ink/75", "bg-accent-ink"];
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];

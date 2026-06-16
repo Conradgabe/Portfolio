@@ -6,6 +6,7 @@ import { Projects } from "@/components/sections/Projects";
 import { Writing } from "@/components/sections/Writing";
 import { GitHubActivity } from "@/components/sections/GitHubActivity";
 import { Contact } from "@/components/sections/Contact";
+import { HashScroll } from "@/components/ui/HashScroll";
 
 function SectionFallback({ id, command }: { id: string; command: string }) {
   return (
@@ -23,6 +24,7 @@ function SectionFallback({ id, command }: { id: string; command: string }) {
 export default function Home() {
   return (
     <main id="main" className="flex-1">
+      <HashScroll />
       <Hero />
       <Metrics />
       <About />

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUpRight, CornerDownLeft } from "lucide-react";
 import { commands, projects, site } from "@/lib/site";
-import { smoothScrollTo } from "@/lib/scroll";
+import { navTo } from "@/lib/scroll";
 
 /**
  * Global ⌘K command palette. Opens via ⌘K / Ctrl+K or the
@@ -49,11 +49,7 @@ export function CommandPalette() {
   }, []);
 
   function go(href: string) {
-    if (href.startsWith("/#") || href.startsWith("#")) {
-      smoothScrollTo(href);
-    } else {
-      router.push(href);
-    }
+    navTo(href, router);
   }
 
   function toggleTheme() {

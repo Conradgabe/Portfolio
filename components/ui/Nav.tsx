@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Command as CommandIcon } from "lucide-react";
 import { commands, site } from "@/lib/site";
-import { openCommandPalette, smoothScrollTo } from "@/lib/scroll";
+import { openCommandPalette, navTo } from "@/lib/scroll";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ const NAV_LINKS = commands.filter((c) =>
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -33,7 +35,7 @@ export function Nav() {
           href="#top"
           onClick={(e) => {
             e.preventDefault();
-            smoothScrollTo("#top");
+            navTo("#top", router);
           }}
           className="font-mono text-sm text-muted transition-colors hover:text-ink"
         >
@@ -49,7 +51,7 @@ export function Nav() {
                   href={c.href}
                   onClick={(e) => {
                     e.preventDefault();
-                    smoothScrollTo(c.href);
+                    navTo(c.href, router);
                   }}
                   className="px-2.5 py-1.5 font-mono text-[13px] text-muted transition-colors hover:text-ink"
                 >
