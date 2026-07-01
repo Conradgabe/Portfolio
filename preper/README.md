@@ -14,25 +14,30 @@ real thing, not flashcards.
 
 ---
 
-## The practice loop (this is the whole point)
+## Two ways to practice (pick one)
 
-Each problem lives in `arena/<id>/` and works like the real IDE:
+### 1. Browser IDE  (recommended - looks like the real thing)
 
-- `INSTRUCTIONS.md` - the problem (read this).
-- `solution.py` - the code you edit (a stub to implement, or buggy code to fix).
-- `sample_tests.py` - **visible, editable** tests. Debug against these. Add your own.
-- hidden **scored tests** - like the real "Run Tests"/Submit. You don't read them; you run them.
+A local web IDE that mirrors the Qualified interface: code editor, editable sample tests,
+Run Sample / Run Scored buttons, live pass/fail output, and a built-in countdown timer.
 
-### Do this for each problem
-1. **Read** `arena/<id>/INSTRUCTIONS.md`.
-2. **Start the timer** in a second terminal:  `python arena/timer.py 35`  (or `45`).
-3. **Edit**  `arena/<id>/solution.py`.
-4. **Debug** against visible sample tests:  `python arena/run.py <id>`
-5. **Score** it (hidden tests, like Submit):  `python arena/run.py <id> --scored`
-6. Iterate until scored is all green or your timer runs out.
-7. Only *then*, if you want the teaching notes, open `arena/<id>/_grading/reference.py`.
+```bash
+cd preper
+python arena/serve.py
+```
 
-### Commands
+Then open **http://127.0.0.1:8765**. Stdlib only, no `pip install`. Run it in a terminal
+window you keep open, and Ctrl-C there when you're done.
+
+- **Top toolbar:** problem dropdown, **▶ Run Sample**, **⚑ Run Scored**, **↺ Reset**, a
+  *reveal detail* toggle, and the countdown timer (auto-set to 35 or 45 min per problem).
+- **Left:** `solution.py` (edit here) over `sample_tests.py` (visible, editable).
+- **Right:** Instructions tab and Output tab (green PASS / red FAIL, timing, tracebacks).
+- Edits autosave to disk, so the CLI below stays in sync. If you're offline, the editor
+  falls back to a plain text box automatically.
+
+### 2. Command line
+
 ```bash
 python arena/run.py --list            # list all problems
 python arena/run.py p1                 # run VISIBLE sample tests (debug)
@@ -41,8 +46,31 @@ python arena/run.py p1 --scored --reveal   # full tracebacks on scored fails
 python arena/run.py p1 --reset         # restore the original starter code
 python arena/timer.py 35               # countdown timer (own terminal)
 ```
-`p1` matches the folder `p1_*`. Don't open the `_grading/` folder until you've attempted -
-it holds the scored tests and the reference solution.
+`p1` matches the folder `p1_*`.
+
+---
+
+## What each problem folder holds
+
+Each problem lives in `arena/<id>/` and works like the real IDE:
+
+- `INSTRUCTIONS.md` - the problem (read this).
+- `solution.py` - the code you edit (a stub to implement, or buggy code to fix).
+- `sample_tests.py` - **visible, editable** tests. Debug against these. Add your own.
+- `_grading/` - the **hidden** scored tests + a reference solution. Don't open it until
+  you've attempted; that's the "Run Scored" tests and the answer.
+
+## The loop for each problem
+1. **Read** the instructions (Instructions tab, or `arena/<id>/INSTRUCTIONS.md`).
+2. **Start the timer** (button in the IDE, or `python arena/timer.py 35`).
+3. **Edit** `solution.py`.
+4. **Run Sample** to debug against the visible tests.
+5. **Run Scored** to grade against the hidden tests - this is what counts.
+6. Iterate until scored is all green or the timer runs out.
+7. Only *then*, if you want the teaching notes, open `arena/<id>/_grading/reference.py`.
+
+> Watch out: a green **Sample** run does not mean you're done. Sample tests cover the happy
+> path; the bug (or the tricky rule) usually hides in the **Scored** tests. Always Run Scored.
 
 ---
 
