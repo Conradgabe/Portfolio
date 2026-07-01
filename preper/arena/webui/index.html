@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Woven Arena - Practice IDE</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#1f2733; --muted:#5b6472; --line:#e2e6ec;
+    --green:#1f9d55; --greenbg:#e9f7ef; --red:#d64545; --redbg:#fdecec;
+    --blue:#2f6fed; --accent:#0b7a4b; --code:#f3f5f7;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{font:14px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);
+       background:var(--bg);display:grid;grid-template-rows:auto 1fr;height:100vh}
+  code,pre,.mono,textarea.ta{font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace}
+
+  /* toolbar */
+  .toolbar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);
+           border-bottom:1px solid var(--line)}
+  .brand{font-weight:700;letter-spacing:.2px}
+  .brand small{color:var(--muted);font-weight:500;margin-left:6px}
+  .spacer{flex:1}
+  select,.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+              border-radius:7px;padding:7px 12px;cursor:pointer}
+  select{padding:7px 8px}
+  .btn:hover{border-color:#c7ccd4}
+  .btn.run{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+  .btn.run:hover{background:#1b8a4b}
+  .btn.scored{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:600}
+  .btn.scored:hover{background:#295fd0}
+  .btn[disabled]{opacity:.55;cursor:default}
+  .chk{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;user-select:none}
+  .kind{color:var(--muted);font-size:12.5px;padding:2px 8px;border:1px solid var(--line);border-radius:20px}
+
+  /* timer */
+  .timerwrap{display:flex;align-items:center;gap:6px}
+  .timer{font-family:inherit;font-weight:700;font-variant-numeric:tabular-nums;font-size:16px;
+         min-width:62px;text-align:center;padding:5px 8px;border-radius:7px;background:#eef1f5}
+  .timer.amber{background:#fff4e0;color:#a5680a}
+  .timer.red{background:var(--redbg);color:var(--red);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.55}}
+  .tbtn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:12px}
+
+  /* main split */
+  .main{display:grid;grid-template-columns:1.08fr 1fr;min-height:0}
+  .left{display:grid;grid-template-rows:1.5fr 1fr;min-height:0;border-right:1px solid var(--line)}
+  .pane{display:flex;flex-direction:column;min-height:0;border-bottom:1px solid var(--line)}
+  .pane-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;
+           background:#fafbfc;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+  .pane-hd b{color:var(--ink);font-weight:600}
+  .editor{flex:1;min-height:0;position:relative}
+  textarea.ta{width:100%;height:100%;border:0;outline:0;resize:none;padding:10px 12px;font-size:13px;
+              line-height:1.5;color:var(--ink);background:var(--panel);white-space:pre;tab-size:4}
+
+  /* right */
+  .right{display:flex;flex-direction:column;min-height:0;background:var(--panel)}
+  .tabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--line);background:#fafbfc}
+  .tab{padding:7px 14px;border:1px solid transparent;border-bottom:0;border-radius:8px 8px 0 0;
+       cursor:pointer;color:var(--muted);font-size:13px}
+  .tab.active{background:var(--panel);border-color:var(--line);color:var(--ink);font-weight:600;margin-bottom:-1px}
+  .tabbody{flex:1;min-height:0;overflow:auto;padding:16px 20px}
+  .view{display:none}
+  .view.active{display:block}
+
+  /* markdown */
+  .md h1{font-size:19px;margin:.2em 0 .5em}
+  .md h2{font-size:15.5px;margin:1.1em 0 .4em}
+  .md h3{font-size:13.5px;margin:1em 0 .3em;color:var(--muted);text-transform:none}
+  .md p{margin:.5em 0}
+  .md ul,.md ol{margin:.4em 0 .6em;padding-left:22px}
+  .md li{margin:.15em 0}
+  .md code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:12.5px}
+  .md pre.cb{background:#0f1620;color:#d7e0ea;padding:12px 14px;border-radius:8px;overflow:auto;font-size:12.5px}
+  .md pre.cb code{background:none;padding:0;color:inherit}
+  .md blockquote{margin:.6em 0;padding:8px 12px;border-left:3px solid var(--accent);background:#f0f7f3;color:#33463d;border-radius:0 6px 6px 0}
+  .md hr{border:0;border-top:1px solid var(--line);margin:1em 0}
+  .md strong{color:var(--ink)}
+
+  /* output */
+  .summary{font-weight:700;padding:10px 12px;border-radius:8px;margin-bottom:12px}
+  .summary.ok{background:var(--greenbg);color:var(--green)}
+  .summary.bad{background:var(--redbg);color:var(--red)}
+  .summary.err{background:#fff4e0;color:#a5680a}
+  ul.tests{list-style:none;margin:0;padding:0}
+  ul.tests li{padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;font-size:13px}
+  ul.tests li.pass{border-left:4px solid var(--green)}
+  ul.tests li.fail{border-left:4px solid var(--red)}
+  ul.tests li.pass{color:#1c7a45}
+  ul.tests li.fail{color:#213}
+  .msg{margin-top:5px;font-family:Consolas,monospace;font-size:12px;color:var(--red);white-space:pre-wrap}
+  pre.detail{margin-top:8px;background:#0f1620;color:#d7e0ea;padding:10px 12px;border-radius:6px;
+             overflow:auto;font-size:11.5px;white-space:pre-wrap}
+  .empty{color:var(--muted);padding:20px 4px}
+  .running{color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="brand">Woven Arena <small>practice IDE</small></div>
+    <span class="kind" id="kind">-</span>
+    <select id="probSelect" title="Choose a problem"></select>
+    <button class="btn run" id="runSample">▶ Run Sample</button>
+    <button class="btn scored" id="runScored">⚑ Run Scored</button>
+    <button class="btn" id="resetBtn" title="Restore the starter code">↺ Reset</button>
+    <label class="chk"><input type="checkbox" id="reveal"> reveal detail</label>
+    <span class="spacer"></span>
+    <div class="timerwrap">
+      <span class="timer" id="timer">--:--</span>
+      <button class="tbtn" id="tStart">Start</button>
+      <button class="tbtn" id="tReset">Reset</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      <div class="pane">
+        <div class="pane-hd"><b>solution.py</b><span id="saveState">saved</span></div>
+        <div class="editor" id="solEditor"></div>
+      </div>
+      <div class="pane" style="border-bottom:0">
+        <div class="pane-hd"><b>sample_tests.py</b><span>visible &middot; editable</span></div>
+        <div class="editor" id="sampleEditor"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="tabs">
+        <div class="tab active" data-tab="instructions">Instructions</div>
+        <div class="tab" data-tab="output">Output</div>
+      </div>
+      <div class="tabbody">
+        <div class="view md active" id="instructions"></div>
+        <div class="view" id="output"><div class="empty">Run the tests to see results here.</div></div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<script>
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function inline(s){
+  s = esc(s);
+  s = s.replace(/`([^`]+)`/g,"<code>$1</code>");
+  s = s.replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  return s;
+}
+function md(src){
+  const lines = (src||"").replace(/\r\n/g,"\n").split("\n");
+  let html="", i=0, inList=null;
+  const close=()=>{ if(inList){ html+="</"+inList+">"; inList=null; } };
+  while(i<lines.length){
+    let line=lines[i];
+    if(line.startsWith("```")){
+      let code=""; i++;
+      while(i<lines.length && !lines[i].startsWith("```")){ code+=lines[i]+"\n"; i++; }
+      i++; close(); html+='<pre class="cb"><code>'+esc(code.replace(/\n$/,""))+"</code></pre>"; continue;
+    }
+    if(/^\s*$/.test(line)){ close(); i++; continue; }
+    if(line.startsWith("### ")){ close(); html+="<h3>"+inline(line.slice(4))+"</h3>"; i++; continue; }
+    if(line.startsWith("## ")){ close(); html+="<h2>"+inline(line.slice(3))+"</h2>"; i++; continue; }
+    if(line.startsWith("# ")){ close(); html+="<h1>"+inline(line.slice(2))+"</h1>"; i++; continue; }
+    if(line.startsWith("> ")){ close(); html+="<blockquote>"+inline(line.slice(2))+"</blockquote>"; i++; continue; }
+    if(/^---+$/.test(line.trim())){ close(); html+="<hr>"; i++; continue; }
+    let ol=line.match(/^(\d+)\.\s+(.*)$/), ul=line.match(/^[-*]\s+(.*)$/);
+    if(ol){ if(inList!=="ol"){ close(); html+="<ol>"; inList="ol"; } html+="<li>"+inline(ol[2])+"</li>"; i++; continue; }
+    if(ul){ if(inList!=="ul"){ close(); html+="<ul>"; inList="ul"; } html+="<li>"+inline(ul[1])+"</li>"; i++; continue; }
+    close(); html+="<p>"+inline(line)+"</p>"; i++;
+  }
+  close(); return html;
+}
+
+// ---------- editors (Monaco with textarea fallback) ----------
+let editors={}, makeEditor=null, booted=false;
+function makeMonaco(id,lang){
+  const ed=monaco.editor.create($("#"+id),{value:"",language:lang,theme:"vs",fontSize:13,
+    minimap:{enabled:false},scrollBeyondLastLine:false,automaticLayout:true,tabSize:4,
+    renderLineHighlight:"line",padding:{top:8}});
+  ed.onDidChangeModelContent(()=>markDirty());
+  return {get:()=>ed.getValue(), set:v=>ed.setValue(v)};
+}
+function makeTextarea(id){
+  const div=$("#"+id); div.innerHTML="";
+  const ta=document.createElement("textarea"); ta.className="ta"; ta.spellcheck=false;
+  ta.addEventListener("input",markDirty); div.appendChild(ta);
+  return {get:()=>ta.value, set:v=>{ta.value=v;}};
+}
+function boot(useMonaco){
+  if(booted) return; booted=true;
+  makeEditor = useMonaco ? makeMonaco : makeTextarea;
+  editors.sol = makeEditor("solEditor","python");
+  editors.sample = makeEditor("sampleEditor","python");
+  initApp();
+}
+if(window.require){
+  require.config({paths:{vs:"https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs"}});
+  require(["vs/editor/editor.main"], ()=>boot(true), ()=>boot(false));
+  setTimeout(()=>boot(false), 3500); // offline fallback
+}else{ boot(false); }
+
+// ---------- app state ----------
+let current=null, running=false, dirty=false, saveT=null;
+function markDirty(){ dirty=true; $("#saveState").textContent="unsaved"; clearTimeout(saveT); saveT=setTimeout(save,900); }
+async function save(){
+  if(!current || !dirty) return;
+  await fetch("/api/save",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id:current, solution:editors.sol.get(), sample:editors.sample.get()})});
+  dirty=false; $("#saveState").textContent="saved";
+}
+
+async function initApp(){
+  const probs = await (await fetch("/api/problems")).json();
+  const sel=$("#probSelect");
+  sel.innerHTML="";
+  probs.forEach(p=>{ const o=document.createElement("option"); o.value=p.id; o.textContent=p.id; sel.appendChild(o); });
+  sel.addEventListener("change", e=>loadProblem(e.target.value));
+  $("#runSample").addEventListener("click", ()=>run(false));
+  $("#runScored").addEventListener("click", ()=>run(true));
+  $("#resetBtn").addEventListener("click", resetProblem);
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>switchTab(t.dataset.tab)));
+  wireTimer();
+  const params=new URLSearchParams(location.search);
+  loadProblem(params.get("p") || "p1_reports");
+}
+
+async function loadProblem(id){
+  await save();
+  const p = await (await fetch("/api/problem?id="+encodeURIComponent(id))).json();
+  if(p.error){ alert(p.error); return; }
+  current=id;
+  editors.sol.set(p.solution);
+  editors.sample.set(p.sample);
+  dirty=false; $("#saveState").textContent="saved";
+  $("#instructions").innerHTML = md(p.instructions);
+  $("#probSelect").value=id;
+  $("#kind").textContent = (p.kind==="debug"?"Debug":"Implement")+" · "+p.timer+" min";
+  setTimer(p.timer);
+  switchTab("instructions");
+  $("#output").innerHTML='<div class="empty">Run the tests to see results here.</div>';
+}
+
+function switchTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.tab===name));
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===name));
+}
+
+function setRunning(on){
+  running=on;
+  $("#runSample").disabled=on; $("#runScored").disabled=on;
+}
+async function run(scored){
+  if(running) return;
+  await save();
+  setRunning(true);
+  switchTab("output");
+  $("#output").innerHTML='<div class="running">Running '+(scored?"scored":"sample")+" tests…</div>";
+  try{
+    const data = await (await fetch("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({id:current, scored, solution:editors.sol.get(), sample:editors.sample.get()})})).json();
+    renderResults(data, scored?"SCORED":"SAMPLE");
+  }catch(e){ $("#output").innerHTML='<div class="summary err">Request failed: '+esc(""+e)+"</div>"; }
+  setRunning(false);
+}
+
+function renderResults(data, mode){
+  const el=$("#output");
+  if(data.error){ el.innerHTML='<div class="summary err">Error</div><pre class="detail">'+esc(data.error)+"</pre>"; return; }
+  const reveal=$("#reveal").checked;
+  const cls = data.failed===0 ? "ok":"bad";
+  let h='<div class="summary '+cls+'">'+mode+" · Passed "+data.passed+" / "+data.total+" · "+data.time_ms+"ms</div>";
+  h+='<ul class="tests">';
+  data.tests.forEach(t=>{
+    if(t.status==="pass"){ h+='<li class="pass">✓ '+esc(t.name)+"</li>"; }
+    else{
+      h+='<li class="fail">✗ '+esc(t.name);
+      if(t.message) h+='<div class="msg">'+esc(t.message)+"</div>";
+      if(reveal && t.detail) h+='<pre class="detail">'+esc(t.detail)+"</pre>";
+      h+="</li>";
+    }
+  });
+  h+="</ul>";
+  if(data.total===0) h+='<div class="empty">No tests ran.</div>';
+  el.innerHTML=h;
+}
+
+async function resetProblem(){
+  if(!confirm("Reset your solution back to the original starter?")) return;
+  const d = await (await fetch("/api/reset",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id:current})})).json();
+  editors.sol.set(d.solution); dirty=false; $("#saveState").textContent="saved";
+}
+
+// ---------- timer ----------
+let T={total:0,remaining:0,iv:null,running:false};
+function fmt(s){ const m=Math.floor(s/60), r=s%60; return String(m).padStart(2,"0")+":"+String(r).padStart(2,"0"); }
+function renderTimer(){
+  const el=$("#timer"); el.textContent=fmt(T.remaining);
+  el.classList.toggle("amber", T.remaining<=300 && T.remaining>60);
+  el.classList.toggle("red", T.remaining<=60);
+}
+function setTimer(mins){ pauseTimer(); T.total=mins*60; T.remaining=mins*60; renderTimer(); }
+function startTimer(){ if(T.running||T.remaining<=0) return; T.running=true; $("#tStart").textContent="Pause";
+  T.iv=setInterval(tick,1000); }
+function pauseTimer(){ T.running=false; if(T.iv)clearInterval(T.iv); $("#tStart").textContent="Start"; }
+function resetTimer(){ pauseTimer(); T.remaining=T.total; renderTimer(); }
+function tick(){ T.remaining--; if(T.remaining<=0){ T.remaining=0; renderTimer(); pauseTimer();
+  const el=$("#timer"); el.classList.add("red"); alert("Time is up. Run the scored tests and submit what you have."); return; } renderTimer(); }
+function wireTimer(){
+  $("#tStart").addEventListener("click", ()=> T.running?pauseTimer():startTimer());
+  $("#tReset").addEventListener("click", resetTimer);
+}
+window.addEventListener("beforeunload", ()=>{ if(dirty){ navigator.sendBeacon &&
+  navigator.sendBeacon("/api/save", JSON.stringify({id:current, solution:editors.sol.get(), sample:editors.sample.get()})); } });
+</script>
+</body>
+</html>
